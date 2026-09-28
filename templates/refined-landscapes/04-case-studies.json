@@ -1,0 +1,39 @@
+{
+  "name": "RL 04 Case studies",
+  "enabled": true,
+  "priority": 10,
+  "targets": [
+    { "type": "post_type", "value": "portfolio_project" }
+  ],
+  "exclude": [],
+  "nodes": [
+    {
+      "@op": "add",
+      "@key": "CreativeWork",
+      "@required": [ "name", "url" ],
+      "@type": "CreativeWork",
+      "@id": "{{post.permalink}}#creativework",
+      "name": "{{post.title}}",
+      "headline": "{{acf.project_h1}}",
+      "url": "{{post.permalink}}",
+      "inLanguage": "{{site.language}}",
+      "description": "{{ acf.project_excerpt || rankmath.description || acf.seo_intro }}",
+      "image": "{{ post.featured_image || acf.hero_image|image:2048x2048 }}",
+      "locationCreated": { "@type": "Place", "name": "{{acf.project_location}}" },
+      "dateCreated": "{{acf.project_year|year}}",
+      "datePublished": "{{post.date}}",
+      "dateModified": "{{post.modified}}",
+      "keywords": "{{ terms.all|join }}",
+      "award": "{{acf.award_title}}",
+      "creator": { "@id": "{{site.url}}#organization" },
+      "publisher": { "@id": "{{site.url}}#organization" },
+      "contributor": { "@type": "Person", "name": "{{acf.project_designer}}" },
+      "mainEntityOfPage": { "@id": "{{post.permalink}}#webpage" }
+    },
+    {
+      "@op": "merge",
+      "@match": "#webpage",
+      "mainEntity": { "@id": "{{post.permalink}}#creativework" }
+    }
+  ]
+}

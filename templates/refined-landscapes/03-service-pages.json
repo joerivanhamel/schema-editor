@@ -1,0 +1,62 @@
+{
+  "name": "RL 03 Service pages",
+  "enabled": true,
+  "priority": 10,
+  "targets": [
+    { "type": "page_template", "value": "page-garden-design.php" },
+    { "type": "page_template", "value": "page-garden-construction.php" },
+    { "type": "page_template", "value": "page-planting-design.php" },
+    { "type": "page_template", "value": "page-outdoor-living.php" },
+    { "type": "page_template", "value": "page-wellness-gardens.php" },
+    { "type": "page_template", "value": "page-garden-maintenance.php" }
+  ],
+  "exclude": [],
+  "nodes": [
+    {
+      "@op": "add",
+      "@key": "Service",
+      "@required": [ "name", "provider" ],
+      "@type": "Service",
+      "@id": "{{post.permalink}}#service",
+      "name": "{{post.title}}",
+      "serviceType": "{{post.title}}",
+      "url": "{{post.permalink}}",
+      "description": "{{ acf.*_hero_subtitle || rankmath.description }}",
+      "provider": { "@id": "{{site.url}}#organization" },
+      "areaServed": {
+        "@each": "option.sd_areas_served",
+        "@type": "{{item.area_type}}",
+        "name": "{{item.area_name}}"
+      },
+      "image": "{{ acf.*_hero_image|image:2048x2048 || post.featured_image }}"
+    },
+    {
+      "@op": "merge",
+      "@match": "#webpage",
+      "mainEntity": { "@id": "{{post.permalink}}#service" }
+    },
+    {
+      "@op": "add",
+      "@if": "acf.*_process_video_id",
+      "@key": "VideoObject",
+      "@required": [ "name", "thumbnailUrl", "uploadDate" ],
+      "@type": "VideoObject",
+      "@id": "{{post.permalink}}#video",
+      "name": "{{ acf.*_process_video_title || acf.*_process_video_still_alt || post.title }}",
+      "description": "{{ acf.*_process_video_description || acf.*_hero_subtitle }}",
+      "thumbnailUrl": "{{ acf.*_process_video_still|image:1024x576 }}",
+      "uploadDate": "{{post.date}}",
+      "duration": "{{ acf.*_process_video_duration|iso_duration }}",
+      "embedUrl": "{{ acf.*_process_video_id|youtube_embed }}",
+      "url": "{{ acf.*_process_video_id|youtube_watch }}",
+      "publisher": { "@id": "{{site.url}}#organization" },
+      "mainEntityOfPage": { "@id": "{{post.permalink}}#webpage" }
+    },
+    {
+      "@op": "merge",
+      "@if": "acf.*_process_video_id",
+      "@match": "#webpage",
+      "video": { "@id": "{{post.permalink}}#video" }
+    }
+  ]
+}

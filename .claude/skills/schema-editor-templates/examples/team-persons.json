@@ -1,0 +1,33 @@
+{
+  "name": "RL 06 Meet the Team",
+  "enabled": true,
+  "priority": 10,
+  "targets": [
+    { "type": "page_template", "value": "page-meet-the-team.php" }
+  ],
+  "exclude": [],
+  "nodes": [
+    {
+      "@op": "merge",
+      "@match": "#webpage",
+      "about": { "@id": "{{site.url}}#organization" }
+    },
+    {
+      "@op": "add",
+      "@repeat": { "post_type": "team_member", "orderby": "menu_order title", "order": "ASC" },
+      "@required": [ "name", "jobTitle" ],
+      "@type": "Person",
+      "@id": "{{parent.permalink}}#{{post.title|first_word|slug}}",
+      "name": "{{post.title|first_word}}",
+      "jobTitle": "{{acf.team_role}}",
+      "image": "{{ post.featured_image || acf.*headshot|image:large || acf.*photo|image:large }}",
+      "worksFor": { "@id": "{{site.url}}#organization" }
+    },
+    {
+      "@op": "merge",
+      "@match": "#{{option.sd_founder_name|first_word|slug}}",
+      "name": "{{option.sd_founder_name}}",
+      "jobTitle": "{{option.sd_founder_title}}"
+    }
+  ]
+}

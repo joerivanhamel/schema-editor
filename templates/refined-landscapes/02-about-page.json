@@ -1,0 +1,16 @@
+{
+  "name": "RL 02 About page",
+  "enabled": true,
+  "priority": 10,
+  "targets": [
+    { "type": "page_template", "value": "page-about.php" }
+  ],
+  "exclude": [],
+  "nodes": [
+    {
+      "@op": "merge",
+      "@match": "#webpage",
+      "mainEntity": { "@id": "{{site.url}}#organization" }
+    }
+  ]
+}
