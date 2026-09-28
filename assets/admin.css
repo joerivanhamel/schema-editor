@@ -1,0 +1,15 @@
+#schema_editor_document .CodeMirror {
+	height: 560px;
+	border: 1px solid #dcdcde;
+	font-size: 13px;
+}
+
+#schema_editor_reference code {
+	font-size: 11px;
+	white-space: nowrap;
+}
+
+#schema_editor_preview_output:empty::before {
+	content: "No preview yet.";
+	color: #757575;
+}

@@ -1,0 +1,10 @@
+/vendor/
+/.phpunit.cache/
+/.phpunit.result.cache
+/docker/wp-data/
+/docker/db-data/
+/dist/
+*.zip
+.DS_Store
+Thumbs.db
+/docker/e2e/out/

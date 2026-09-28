@@ -1,0 +1,85 @@
+[
+  {
+    "name": "E2E 01 Organization hygiene",
+    "enabled": true,
+    "priority": 5,
+    "targets": [ { "type": "all" } ],
+    "nodes": [
+      { "@op": "remove", "@match": "#organization", "properties": [ "aggregateRating", "review", "priceRange" ] }
+    ]
+  },
+  {
+    "name": "E2E 02 Service page",
+    "enabled": true,
+    "priority": 10,
+    "targets": [ { "type": "slug", "value": "consulting" } ],
+    "nodes": [
+      {
+        "@op": "add",
+        "@key": "Service",
+        "@required": [ "name", "provider" ],
+        "@type": "Service",
+        "@id": "{{post.permalink}}#service",
+        "name": "{{post.title}}",
+        "serviceType": "{{post.title}}",
+        "url": "{{post.permalink}}",
+        "description": "{{ meta.hero_subtitle || rankmath.description }}",
+        "provider": { "@id": "{{site.url}}#organization" },
+        "image": "{{ meta.hero_image|image:full || post.featured_image }}",
+        "areaServed": { "@each": "option.missing_repeater", "name": "{{item.name}}" },
+        "award": "{{meta.missing_field}}"
+      },
+      { "@op": "merge", "@match": "#webpage", "mainEntity": { "@id": "{{post.permalink}}#service" } }
+    ]
+  },
+  {
+    "name": "E2E 03 Team persons",
+    "enabled": true,
+    "priority": 10,
+    "targets": [ { "type": "slug", "value": "team" } ],
+    "nodes": [
+      { "@op": "merge", "@match": "#webpage", "about": { "@id": "{{site.url}}#organization" } },
+      {
+        "@op": "add",
+        "@repeat": { "post_type": "post", "orderby": "title", "order": "ASC" },
+        "@required": [ "name", "jobTitle" ],
+        "@type": "Person",
+        "@id": "{{parent.permalink}}#{{post.title|first_word|slug}}",
+        "name": "{{post.title|first_word}}",
+        "jobTitle": "{{meta.team_role}}",
+        "worksFor": { "@id": "{{site.url}}#organization" }
+      }
+    ]
+  },
+  {
+    "name": "E2E 04 Film articles",
+    "enabled": true,
+    "priority": 10,
+    "targets": [ { "type": "post_type", "value": "post" } ],
+    "nodes": [
+      {
+        "@op": "add",
+        "@if": "meta.video_id",
+        "@key": "VideoObject",
+        "@required": [ "name", "thumbnailUrl", "uploadDate" ],
+        "@type": "VideoObject",
+        "@id": "{{post.permalink}}#video",
+        "name": "{{ meta.video_title || post.title }}",
+        "thumbnailUrl": "{{ meta.video_still|image:full || post.featured_image }}",
+        "uploadDate": "{{post.date}}",
+        "duration": "{{meta.video_duration|iso_duration}}",
+        "embedUrl": "{{meta.video_id|youtube_embed}}",
+        "url": "{{meta.video_id|youtube_watch}}",
+        "publisher": { "@id": "{{site.url}}#organization" }
+      },
+      { "@op": "merge", "@if": "meta.video_id", "@match": "@type:BlogPosting", "video": { "@id": "{{post.permalink}}#video" } }
+    ]
+  },
+  {
+    "name": "E2E 05 Invalid on purpose (disabled)",
+    "enabled": false,
+    "priority": 99,
+    "targets": [ { "type": "all" } ],
+    "nodes": [ { "@type": "Thing", "name": "never printed" } ]
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "name": "Organization hygiene",
+  "enabled": true,
+  "priority": 5,
+  "targets": [
+    { "type": "all" }
+  ],
+  "exclude": [],
+  "nodes": [
+    {
+      "@op": "remove",
+      "@match": "#organization",
+      "properties": [ "aggregateRating", "review", "priceRange" ]
+    }
+  ]
+}
