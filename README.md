@@ -22,8 +22,14 @@ when-empty rule that keeps the output valid without anyone checking it by hand.
 
 ## Install
 
-Copy the `schema-editor` folder into `wp-content/plugins/` and activate. No build step; the plugin ships its own
-autoloader. Composer is only needed for the unit tests.
+Download `schema-editor.zip` from the [latest release](https://github.com/joerivanhamel/schema-editor/releases/latest)
+and upload it under Plugins → Add New → Upload Plugin, then activate. Or copy the `schema-editor` folder into
+`wp-content/plugins/`. No build step; the plugin ships its own autoloader. Composer is only needed for the unit
+tests.
+
+To try the examples, import `templates/examples/` (Schema Editor → Settings & Import, or
+`wp schema-editor import wp-content/plugins/schema-editor/templates/examples/`) and adapt the field names to your
+theme.
 
 ## Writing a template
 
