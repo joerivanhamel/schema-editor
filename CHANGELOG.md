@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Site-neutral repository: generic example templates in `templates/examples/` (organization hygiene, service
+  pages, case studies, team members, articles with a video) replace the client-specific set, and the tests and
+  end-to-end scripts use a neutral example business. No change to the plugin's behaviour.
+
 ## 0.1.4 — 2026-09-28
 
 - Fix: importing a template whose name already exists now replaces its content. A safeguard meant only for
