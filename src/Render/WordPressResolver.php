@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace JoeriVanhamel\SchemaEditor\Render;
 
+use JoeriVanhamel\SchemaEditor\Template\RequestContext;
 use WP_Post;
 use WP_Query;
 
@@ -25,12 +26,22 @@ use WP_Query;
  *   meta.KEY      raw post meta
  *   rankmath.title | description         the post's Rank Math title and description
  *   rankmath.titles.KEY | general.KEY    a value from Rank Math's settings
- *   site.url | name | description | language
+ *   site.url | home_url | name | description | language   (url ends in "/", home_url does not)
  *   terms.TAXONOMY | terms.TAXONOMY.slugs   names (or slugs) of the post's terms in that taxonomy
  *   settings.NAME  a WordPress option
+ *   page.url | title | description | breadcrumbs   the page being rendered (see PageData)
+ *   request.is_front_page | is_home | is_singular | is_page | is_archive | is_collection | is_search |
+ *          is_author | is_404 | is_paged | post_type | taxonomy | term | page_template | slug | post_id
  *
- * Filters: image[:size] turns an attachment ID, ACF image array or URL into a URL; permalink turns a post ID into
- * its permalink.
+ * Filters (data-dependent ones; the text and list filters live in Expression):
+ *   image[:size]          attachment ID, ACF image array or URL to a URL
+ *   image_width, image_height, image_alt, image_caption, attachment_id   facts about an attachment (ID, array or URL)
+ *   permalink             a post ID to its permalink
+ *   post:KEY              a post ID to one of its post.* values (post:title, post:date)
+ *   meta:KEY, acf:FIELD   a post ID to a meta value or ACF field of that post
+ *   template_page         a page-template file name to the ID of the published page that uses it
+ *   find_post:TYPE        a name to the ID of the one published post of that type whose title is that name, or
+ *                         whose title starts with it as its first word (a first name matching one team member)
  */
 final class WordPressResolver implements ValueResolverInterface {
 
@@ -49,6 +60,8 @@ final class WordPressResolver implements ValueResolverInterface {
 			'site'     => $this->siteValue( $segments ),
 			'terms'    => $this->termsValue( $this->postId( $context->post ), $segments ),
 			'settings' => ArrayResolver::walk( get_option( (string) ( $segments[0] ?? '' ) ), array_slice( $segments, 1 ) ),
+			'page'     => PageData::value( $segments, $this->subject( $context ), $context->request ),
+			'request'  => ArrayResolver::walk( $context->request instanceof RequestContext ? $context->request->toArray() : ( is_array( $context->request ) ? $context->request : null ), $segments ),
 			default    => null,
 		};
 		return false === $value ? null : $value; // ACF returns false for an empty field
@@ -58,12 +71,143 @@ final class WordPressResolver implements ValueResolverInterface {
 		switch ( $name ) {
 			case 'image':
 				return $this->imageUrl( $value, $argument );
+			case 'image_width':
+			case 'image_height':
+				$id = $this->attachmentId( $value );
+				$src = $id ? wp_get_attachment_image_src( $id, $argument ?: 'full' ) : false;
+				return is_array( $src ) ? (int) $src[ 'image_width' === $name ? 1 : 2 ] : null;
+			case 'image_alt':
+				$id = $this->attachmentId( $value );
+				$alt = $id ? trim( (string) get_post_meta( $id, '_wp_attachment_image_alt', true ) ) : '';
+				return '' !== $alt ? $alt : null;
+			case 'image_caption':
+				$id = $this->attachmentId( $value );
+				$caption = $id ? trim( (string) wp_get_attachment_caption( $id ) ) : '';
+				return '' !== $caption ? $caption : null;
+			case 'attachment_id':
+				return $this->attachmentId( $value ) ?: null;
 			case 'permalink':
 				$id = is_numeric( $value ) ? (int) $value : ( $value instanceof WP_Post ? $value->ID : 0 );
 				return $id ? (string) get_permalink( $id ) : null;
+			case 'post':
+				return null !== $argument ? $this->postValue( $this->postFrom( $value ), explode( '.', $argument ) ) : null;
+			case 'meta':
+				$post = $this->postFrom( $value );
+				return $post && null !== $argument ? ArrayResolver::walk( get_post_meta( $post->ID, $argument, true ), [] ) : null;
+			case 'acf':
+				$post = $this->postFrom( $value );
+				if ( ! $post || null === $argument ) {
+					return null;
+				}
+				$field = explode( '.', $argument );
+				return $this->acfValue( $post->ID, $field );
+			case 'template_page':
+				return is_string( $value ) ? self::pageWithTemplate( $value ) : null;
+			case 'find_post':
+				return is_string( $value ) && null !== $argument ? self::findPost( $argument, $value ) : null;
 			default:
 				return $value;
 		}
+	}
+
+	/**
+	 * The post whose values post.* reads: the context's post (the page, or the repeated item).
+	 */
+	private function subject( Context $context ): mixed {
+		return is_numeric( $context->post ) ? get_post( (int) $context->post ) : $context->post;
+	}
+
+	private function postFrom( mixed $value ): ?WP_Post {
+		if ( $value instanceof WP_Post ) {
+			return $value;
+		}
+		if ( is_array( $value ) && isset( $value['ID'] ) ) {
+			$value = $value['ID'];
+		}
+		$post = is_numeric( $value ) ? get_post( (int) $value ) : null;
+		return $post instanceof WP_Post ? $post : null;
+	}
+
+	/**
+	 * An attachment ID from an ID, an ACF image array or an uploads URL.
+	 */
+	private function attachmentId( mixed $value ): int {
+		if ( is_array( $value ) ) {
+			return (int) ( $value['ID'] ?? $value['id'] ?? 0 );
+		}
+		if ( is_numeric( $value ) ) {
+			return (int) $value;
+		}
+		if ( is_string( $value ) && str_starts_with( $value, 'http' ) ) {
+			return (int) attachment_url_to_postid( $value );
+		}
+		return 0;
+	}
+
+	/**
+	 * The published page that uses a page template (the first by menu order, then ID).
+	 */
+	public static function pageWithTemplate( string $template ): ?int {
+		static $cache = [];
+		$template = basename( trim( $template ) );
+		if ( '' === $template ) {
+			return null;
+		}
+		if ( ! array_key_exists( $template, $cache ) ) {
+			$ids = get_posts(
+				[
+					'post_type'        => 'page',
+					'post_status'      => 'publish',
+					'posts_per_page'   => 1,
+					'fields'           => 'ids',
+					'orderby'          => [ 'menu_order' => 'ASC', 'ID' => 'ASC' ],
+					'meta_key'         => '_wp_page_template', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- one small lookup, cached.
+					'meta_value'       => $template, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+					'suppress_filters' => false,
+				]
+			);
+			$cache[ $template ] = $ids ? (int) $ids[0] : null;
+		}
+		return $cache[ $template ];
+	}
+
+	/**
+	 * The one published post of a type whose title is the name, or whose title's first word is the name (case
+	 * does not matter). Nothing when no post, or more than one, fits: an ambiguous name is not a person.
+	 */
+	public static function findPost( string $post_type, string $name ): ?int {
+		static $rosters = [];
+		$name = trim( Expression::plain( $name ) );
+		if ( '' === $name ) {
+			return null;
+		}
+		if ( ! isset( $rosters[ $post_type ] ) ) {
+			$rosters[ $post_type ] = [];
+			$posts                 = get_posts(
+				[
+					'post_type'        => $post_type,
+					'post_status'      => 'publish',
+					'posts_per_page'   => -1,
+					'suppress_filters' => false,
+				]
+			);
+			foreach ( $posts as $post ) {
+				if ( $post instanceof WP_Post ) {
+					$title                   = trim( (string) Expression::plain( get_the_title( $post ) ) );
+					$rosters[ $post_type ][] = [
+						'id'    => $post->ID,
+						'title' => $title,
+						'first' => (string) ( preg_split( '/\s+/', $title )[0] ?? $title ),
+					];
+				}
+			}
+		}
+		$exact = array_values( array_filter( $rosters[ $post_type ], static fn( array $m ): bool => 0 === strcasecmp( $m['title'], $name ) ) );
+		if ( 1 === count( $exact ) ) {
+			return $exact[0]['id'];
+		}
+		$first = array_values( array_filter( $rosters[ $post_type ], static fn( array $m ): bool => 0 === strcasecmp( $m['first'], $name ) ) );
+		return 1 === count( $first ) ? $first[0]['id'] : null;
 	}
 
 	public function repeat( array $query, Context $context ): array {
@@ -320,6 +464,7 @@ final class WordPressResolver implements ValueResolverInterface {
 	private function siteValue( array $segments ): mixed {
 		return match ( (string) ( $segments[0] ?? '' ) ) {
 			'url', 'home' => home_url( '/' ),
+			'home_url'    => get_home_url(),
 			'name'        => get_bloginfo( 'name' ),
 			'description' => get_bloginfo( 'description' ),
 			'language'    => get_bloginfo( 'language' ),

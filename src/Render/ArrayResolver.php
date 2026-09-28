@@ -10,7 +10,8 @@ declare(strict_types=1);
 namespace JoeriVanhamel\SchemaEditor\Render;
 
 /**
- * Data shape: [ 'post' => [...], 'acf' => [...], 'option' => [...], 'site' => [...], 'repeat' => [ [...], ... ] ].
+ * Data shape: [ 'post' => [...], 'acf' => [...], 'option' => [...], 'site' => [...], 'page' => [...],
+ * 'repeat' => [ [...], ... ] ]. request.* reads the context's request (a RequestContext or an array), else data['request'].
  * post.* reads the context's post when it is an array, else data['post']; item.* and parent.* read the context.
  * A path segment may contain "*" and matches the first key that fits the pattern (fnmatch).
  */
@@ -29,6 +30,7 @@ final class ArrayResolver implements ValueResolverInterface {
 			'post'   => is_array( $context->post ) ? $context->post : ( $this->data['post'] ?? null ),
 			'item'   => $context->item,
 			'parent' => $context->parent,
+			'request' => $context->request instanceof \JoeriVanhamel\SchemaEditor\Template\RequestContext ? $context->request->toArray() : ( $context->request ?? ( $this->data['request'] ?? null ) ),
 			default  => $this->data[ $namespace ] ?? null,
 		};
 		return self::walk( $source, $segments );

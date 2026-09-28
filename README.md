@@ -1,9 +1,11 @@
 # Schema Editor
 
 A WordPress plugin by Joeri Vanhamel for writing JSON-LD schema templates that are populated from the database and
-applied by display targets. When Rank Math is active the templates are merged into Rank Math's own `@graph`, so a
-page never carries two graphs and Rank Math's Organization, WebSite, WebPage, breadcrumb and article nodes stay
-exactly as Rank Math builds them. Without Rank Math the plugin prints its own graph.
+applied by display targets. While Rank Math's Schema module is on, the templates are merged into Rank Math's own
+`@graph`, so a page never carries two graphs and Rank Math's Organization, WebSite, WebPage, breadcrumb and article
+nodes stay as Rank Math builds them. With Rank Math's Schema module switched off (the rest of Rank Math keeps
+running) or without Rank Math, the plugin prints the whole graph itself, and a template set can then carry every
+node on the site (see "Carrying the whole graph").
 
 Nothing is hardcoded. A template says *where a value comes from* (`{{post.title}}`, `{{acf.hero_image|image}}`,
 `{{option.legal_name}}`, `{{rankmath.description}}`) and the plugin reads it at request time. A property whose
@@ -19,6 +21,20 @@ display conditions are a Rank Math PRO feature. This plugin gives the same "one 
 any site, with three things PRO does not do: editing or removing nodes other code added (`merge` and `remove`
 operations), repeating a node per related post (`@repeat`, for example one Person per team member), and the omit-
 when-empty rule that keeps the output valid without anyone checking it by hand.
+
+## Carrying the whole graph
+
+To have every node managed by templates, switch Rank Math's Schema (Structured Data) module off; titles, meta,
+sitemaps and Local SEO settings stay. The output setting "Automatic" notices and prints the plugin's own graph.
+Templates that build what Rank Math used to provide are marked `"output": "standalone"`, so they can be imported
+while the module is still on without changing anything live. `templates/examples/standalone-base.json` is a
+starting set (business, place and website; the web page typed by request, with its primary image; breadcrumbs;
+posts), reading Rank Math's settings and WordPress.
+
+A safe cutover: import the set with the module on; as an administrator, open any page with
+`?schema_editor_preview=standalone` to see the graph the plugin will print and compare it with the live one;
+then switch the module off, purge caches and check again. Theme code that edits Rank Math's graph goes silent
+with the module, and theme code that prints its own JSON-LD keeps printing, so move both into templates.
 
 ## Install
 
@@ -120,7 +136,12 @@ yields a JSON array. A string mixing text and placeholders is omitted when any p
 | `meta.KEY` | raw post meta |
 | `rankmath.title`, `rankmath.description` | the post's Rank Math title and description |
 | `rankmath.titles.KEY`, `rankmath.general.KEY`, `rankmath.sitemap.KEY` | Rank Math settings |
-| `site.url`, `site.name`, `site.description`, `site.language` | the site |
+| `site.url` (with a trailing `/`), `site.home_url` (without), `site.name`, `site.description`, `site.language` | the site |
+| `page.url`, `page.title`, `page.description` | the page's canonical URL, SEO title and SEO description (Rank Math's own head values when Rank Math is active), on any request including archives and search |
+| `page.breadcrumbs` | `[{name, url, position}]`, the theme's visible trail when Settings names its function, else built from page titles, the posts page, post type archives and terms |
+| `request.is_front_page`, `is_home`, `is_singular`, `is_page`, `is_archive`, `is_collection`, `is_search`, `is_author`, `is_404`, `is_paged`, `post_type`, `page_template`, `slug`, `post_id` | the request being rendered, for `@if` |
+| `var.NAME` | a template variable (`"vars": { "NAME": "expression" }`) |
+| `loop.index`, `loop.index0` | the position inside `@each` or `@repeat` |
 | `terms.TAXONOMY`, `terms.TAXONOMY.slugs`, `terms.TAXONOMY.first`, `terms.all` | the post's terms (`all`: every public taxonomy of its type) |
 | `settings.NAME` | a WordPress option |
 
@@ -128,7 +149,14 @@ Filters: `image[:size]` (attachment ID, ACF image array or URL → URL; size is 
 `year`, `int`, `float`, `bool`, `lower`, `upper`, `ucfirst`, `first_word`, `slug`, `words:N`, `chars:N`, `join` (comma
 and space) or `join:'SEP'` (quote an argument that carries spaces),
 `first`, `count`, `date:FORMAT`, `default:'x'`, `youtube_id`, `youtube_embed`, `youtube_watch` (each accepts a bare
-ID or any YouTube URL), `iso_duration` ("1:24" → PT1M24S), `raw`.
+ID or any YouTube URL), `iso_duration` ("1:24" → PT1M24S), `raw`, and since 0.2.0 `not`, `trim`, `before:','`,
+`after:','`, `split:'x'`, `lines`, `last`, `key:a.b`, `pluck:field`, `unique`, `time`, `opening_hours`,
+`map_url`, `image_width`, `image_height`, `image_alt`, `image_caption`, `attachment_id`, `post:KEY`, `meta:KEY`,
+`acf:FIELD`, `template_page` and `find_post:TYPE` (see the skill's `reference.md` for each).
+
+`@if` takes one expression or a list that must all hold, understands `a == b` and `a != b`, and works on nested
+objects. `@each` takes an array expression or a query object, works on a node as well as inside a value, and
+`@single: true` prints a list of one as that one object.
 
 `acf.*_hero_image` style globs are matched against the field names the field groups define (not only saved
 values), so a field still holding its ACF default value resolves too. The Preview box lists every ACF field on
@@ -143,7 +171,9 @@ saved.
 
 ## Settings & Import
 
-Schema Editor → Settings & Import: output mode (automatic, Rank Math only, standalone, off); always print Rank
+Schema Editor → Settings & Import: output mode (automatic: inside Rank Math's graph while its Schema module is on,
+else the plugin's own; Rank Math only; standalone; off), with the mode in force shown beneath; the theme's
+breadcrumb trail function for `page.breadcrumbs`; always print Rank
 Math's Organization, WebSite and WebPage nodes on single posts and pages (on by default: Rank Math leaves them out
 when a post's schema type is "off", and a template then has nothing to merge into); remove Rank Math's sitelinks
 search box; a footer HTML comment naming the templates that ran; delete templates on uninstall. Export
@@ -155,7 +185,7 @@ downloads every template as one JSON file; Import reads one document or an array
 wp schema-editor list
 wp schema-editor import path/to/file-or-directory/
 wp schema-editor export --file=templates.json
-wp schema-editor render 6            # or a URL: the nodes the plugin adds for that post
+wp schema-editor render 6            # or a URL: the graph the plugin prints on its own for that post
 ```
 
 ## Development

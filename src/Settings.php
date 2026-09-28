@@ -22,6 +22,7 @@ final class Settings {
 		'disable_rankmath_search' => false,    // drop the WebSite SearchAction (sitelinks search box) from Rank Math's graph
 		'debug_comment'           => false,    // print an HTML comment naming the templates that ran
 		'delete_on_uninstall'     => false,    // remove the templates when the plugin is deleted
+		'breadcrumb_callback'     => '',       // a theme function returning the visible breadcrumb trail (page.breadcrumbs)
 	];
 
 	/** @var array<string,mixed>|null */
@@ -55,7 +56,16 @@ final class Settings {
 			'disable_rankmath_search' => ! empty( $input['disable_rankmath_search'] ),
 			'debug_comment'           => ! empty( $input['debug_comment'] ),
 			'delete_on_uninstall'     => ! empty( $input['delete_on_uninstall'] ),
+			'breadcrumb_callback'     => self::callbackName( $input['breadcrumb_callback'] ?? '' ),
 		];
+	}
+
+	/**
+	 * A function or Class::method name, or nothing.
+	 */
+	private static function callbackName( mixed $name ): string {
+		$name = trim( is_string( $name ) ? $name : '' );
+		return preg_match( '/^[A-Za-z_][A-Za-z0-9_]*(::[A-Za-z_][A-Za-z0-9_]*)?$/', $name ) ? $name : '';
 	}
 
 	private function load(): void {

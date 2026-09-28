@@ -31,6 +31,21 @@ final class RankMathBridge {
 		return class_exists( '\RankMath\Helper' ) || function_exists( 'rank_math' );
 	}
 
+	/**
+	 * Whether Rank Math will print a JSON-LD graph: the plugin is active and its "Schema (Structured Data)"
+	 * module is on. With the module off, rank_math/json_ld never runs, so the templates must print their own.
+	 */
+	public static function rankMathSchemaActive(): bool {
+		if ( ! self::rankMathActive() ) {
+			return false;
+		}
+		if ( class_exists( '\RankMath\Helper' ) && method_exists( '\RankMath\Helper', 'is_module_active' ) ) {
+			return (bool) \RankMath\Helper::is_module_active( 'rich-snippet' );
+		}
+		$modules = get_option( 'rank_math_modules', [] );
+		return is_array( $modules ) && in_array( 'rich-snippet', $modules, true );
+	}
+
 	public function register(): void {
 		add_filter( 'rank_math/json_ld', [ $this, 'filter' ], self::PRIORITY );
 		if ( $this->settings->get( 'force_global_entities' ) ) {
@@ -62,6 +77,6 @@ final class RankMathBridge {
 		}
 		$request = RequestContext::fromWordPress();
 		$context = new Context( $request->postId ? get_post( $request->postId ) : null );
-		return $this->engine->apply( $data, $request, $context );
+		return $this->engine->apply( $data, $request, $context, Engine::MODE_RANKMATH );
 	}
 }

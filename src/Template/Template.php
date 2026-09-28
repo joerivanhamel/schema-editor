@@ -22,8 +22,14 @@ use InvalidArgumentException;
  *     "priority": 10,
  *     "targets":  [ { "type": "page_template", "value": "page-consulting.php" } ],
  *     "exclude":  [ { "type": "post", "value": 52 } ],
+ *     "output":   "any",
+ *     "vars":     { "image": "post.featured_image_id || rankmath.titles.open_graph_image_id" },
  *     "nodes":    [ { "@op": "add", "@key": "Service", "@type": "Service", "name": "{{post.title}}" } ]
  *   }
+ *
+ * "output" says when the template runs: "any" (default), "standalone" (only when the plugin prints its own
+ * graph, for templates that build what Rank Math would otherwise provide) or "rankmath" (only when the plugin
+ * edits Rank Math's graph). "vars" are named expressions evaluated once per render and read as var.NAME.
  */
 final class Template {
 
@@ -35,6 +41,8 @@ final class Template {
 	 * @param array<int,array>    $exclude  Targets that veto it even when a target matches.
 	 * @param array<int,array>    $nodes    Node operations, in order.
 	 * @param int                 $postId   Backing post ID when stored in WordPress (0 for files and tests).
+	 * @param string              $output   any | standalone | rankmath.
+	 * @param array<string,mixed> $vars     Named expressions, evaluated in order.
 	 */
 	public function __construct(
 		public readonly string $name,
@@ -43,8 +51,21 @@ final class Template {
 		public readonly array $targets,
 		public readonly array $exclude,
 		public readonly array $nodes,
-		public readonly int $postId = 0
+		public readonly int $postId = 0,
+		public readonly string $output = self::OUTPUT_ANY,
+		public readonly array $vars = []
 	) {
+	}
+
+	public const OUTPUT_ANY        = 'any';
+	public const OUTPUT_STANDALONE = 'standalone';
+	public const OUTPUT_RANKMATH   = 'rankmath';
+
+	/**
+	 * Whether the template runs in an output mode ("standalone" or "rankmath").
+	 */
+	public function runsIn( string $mode ): bool {
+		return self::OUTPUT_ANY === $this->output || $mode === $this->output;
 	}
 
 	/**
@@ -82,8 +103,21 @@ final class Template {
 			if ( 'add' !== $op && empty( $node['@match'] ) ) {
 				throw new InvalidArgumentException( sprintf( 'Node %d: "%s" needs a "@match" selector.', $i + 1, $op ) );
 			}
-			if ( 'add' === $op && empty( $node['@type'] ) && empty( $node['@repeat'] ) ) {
+			if ( 'add' === $op && empty( $node['@type'] ) && empty( $node['@repeat'] ) && empty( $node['@each'] ) ) {
 				throw new InvalidArgumentException( sprintf( 'Node %d: an added node needs a "@type".', $i + 1 ) );
+			}
+		}
+		$output = (string) ( $data['output'] ?? self::OUTPUT_ANY );
+		if ( ! in_array( $output, [ self::OUTPUT_ANY, self::OUTPUT_STANDALONE, self::OUTPUT_RANKMATH ], true ) ) {
+			throw new InvalidArgumentException( sprintf( 'Unknown "output" "%s" (any, standalone or rankmath).', $output ) );
+		}
+		$vars = $data['vars'] ?? [];
+		if ( ! is_array( $vars ) || ( [] !== $vars && array_is_list( $vars ) ) ) {
+			throw new InvalidArgumentException( '"vars" must be a JSON object of name: expression.' );
+		}
+		foreach ( array_keys( $vars ) as $var_name ) {
+			if ( ! preg_match( '/^[A-Za-z_][A-Za-z0-9_]*$/', (string) $var_name ) ) {
+				throw new InvalidArgumentException( sprintf( 'Variable name "%s" may use letters, digits and underscores only.', $var_name ) );
 			}
 		}
 		$targets = self::targetList( $data['targets'] ?? [], 'targets' );
@@ -99,7 +133,9 @@ final class Template {
 			$targets,
 			$exclude,
 			array_values( $nodes ),
-			$post_id
+			$post_id,
+			$output,
+			$vars
 		);
 	}
 
@@ -142,13 +178,20 @@ final class Template {
 	 * @return array<string,mixed>
 	 */
 	public function toArray(): array {
-		return [
+		$out = [
 			'name'     => $this->name,
 			'enabled'  => $this->enabled,
 			'priority' => $this->priority,
 			'targets'  => $this->targets,
 			'exclude'  => $this->exclude,
-			'nodes'    => $this->nodes,
 		];
+		if ( self::OUTPUT_ANY !== $this->output ) {
+			$out['output'] = $this->output;
+		}
+		if ( [] !== $this->vars ) {
+			$out['vars'] = $this->vars;
+		}
+		$out['nodes'] = $this->nodes;
+		return $out;
 	}
 }

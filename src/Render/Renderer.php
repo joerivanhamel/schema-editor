@@ -18,15 +18,23 @@ use JoeriVanhamel\SchemaEditor\Template\Template;
  *    any of them is empty (no "Home › " leftovers).
  *  - An object with nothing left but "@type" is omitted; an empty list is omitted.
  *  - A node that lacks a property named in "@required" is omitted entirely.
- *  - "@if": the node is only rendered when the expression is non-empty.
+ *  - "@if": the node (or a nested object) is only rendered when the expression is non-empty. A list of
+ *    expressions must all hold. Comparisons ("post.id == rankmath.titles.local_seo_about_page") yield true or
+ *    nothing.
  *  - "@repeat": the node is rendered once per query result, with that result as "post" and the page as "parent".
- *  - "@each" inside a value: an array built from an array-valued path, each entry available as "item".
+ *  - "@each": on a node, the node is rendered once per entry; inside a value, an array is built with one object
+ *    per entry. The entries come from an array-valued expression (each entry is "item") or from a query object
+ *    in the "@repeat" shape (each result is "post", the page is "parent"). loop.index is the 1-based position.
+ *  - A list entry that renders to a list (a placeholder yielding a list, or an "@each" object) is spliced into
+ *    the surrounding list: JSON-LD has no lists of lists.
+ *  - "@single": true on an "@each" value prints a list of exactly one entry as that entry.
+ *  - A template's "vars" are evaluated once per render, in order, and read as var.NAME.
  *
  * Directives: @op (add | merge | remove), @key, @match, @required, @if, @repeat, @each.
  */
 final class Renderer {
 
-	private const DIRECTIVES = [ '@op', '@key', '@match', '@required', '@if', '@repeat', '@each' ];
+	private const DIRECTIVES = [ '@op', '@key', '@match', '@required', '@if', '@repeat', '@each', '@single' ];
 
 	private readonly Expression $expression;
 
@@ -42,6 +50,7 @@ final class Renderer {
 	 *                                       | ['op' => 'remove', 'match' => string, 'properties' => array|null].
 	 */
 	public function render( Template $template, Context $context ): array {
+		$context    = $this->withVars( $template->vars, $context );
 		$operations = [];
 		foreach ( $template->nodes as $index => $node ) {
 			foreach ( $this->renderNode( $node, $context, $index ) as $operation ) {
@@ -49,6 +58,57 @@ final class Renderer {
 			}
 		}
 		return $operations;
+	}
+
+	/**
+	 * Evaluate a template's variables in order; each may use the ones before it.
+	 *
+	 * @param array<string,mixed> $vars Name => expression (string) or value definition.
+	 */
+	private function withVars( array $vars, Context $context ): Context {
+		$values = $context->vars;
+		foreach ( $vars as $name => $definition ) {
+			$scope           = $context->withVars( $values );
+			$values[ $name ] = is_string( $definition ) ? $this->evaluate( $definition, $scope ) : $this->renderValue( $definition, $scope );
+		}
+		return $context->withVars( $values );
+	}
+
+	/**
+	 * Whether a condition holds: one expression, or a list of expressions that must all hold.
+	 */
+	private function holds( mixed $condition, Context $context ): bool {
+		foreach ( is_array( $condition ) ? $condition : [ $condition ] as $expression ) {
+			if ( ! is_string( $expression ) || Expression::isEmpty( $this->evaluate( $expression, $context ) ) ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * The contexts an "@each" produces: one per entry of an array-valued expression (as "item"), or one per result
+	 * of a query object (as "post", with the current post as "parent").
+	 *
+	 * @return array<int,Context>
+	 */
+	private function eachContexts( mixed $spec, Context $context ): array {
+		$out = [];
+		if ( is_array( $spec ) ) {
+			foreach ( $this->resolver->repeat( $spec, $context ) as $i => $item_context ) {
+				$out[] = new Context( $item_context->post, $item_context->item, $item_context->parent, $context->vars, $i + 1, $context->request );
+			}
+			return $out;
+		}
+		$items = is_string( $spec ) ? $this->evaluate( $spec, $context ) : null;
+		if ( ! is_array( $items ) ) {
+			return [];
+		}
+		$position = 0;
+		foreach ( $items as $item ) {
+			$out[] = $context->withItem( $item, ++$position );
+		}
+		return $out;
 	}
 
 	/**
@@ -62,14 +122,26 @@ final class Renderer {
 			$operations = [];
 			$inner      = $node;
 			unset( $inner['@repeat'] );
-			foreach ( $this->resolver->repeat( $node['@repeat'], $context ) as $item_context ) {
+			foreach ( $this->resolver->repeat( $node['@repeat'], $context ) as $i => $item_context ) {
+				$item_context = new Context( $item_context->post, $item_context->item, $item_context->parent, $context->vars, $i + 1, $context->request );
 				foreach ( $this->renderNode( $inner, $item_context, $index ) as $operation ) {
 					$operations[] = $operation;
 				}
 			}
 			return $operations;
 		}
-		if ( isset( $node['@if'] ) && is_string( $node['@if'] ) && Expression::isEmpty( $this->evaluate( $node['@if'], $context ) ) ) {
+		if ( isset( $node['@each'] ) ) {
+			$operations = [];
+			$inner      = $node;
+			unset( $inner['@each'] );
+			foreach ( $this->eachContexts( $node['@each'], $context ) as $item_context ) {
+				foreach ( $this->renderNode( $inner, $item_context, $index ) as $operation ) {
+					$operations[] = $operation;
+				}
+			}
+			return $operations;
+		}
+		if ( isset( $node['@if'] ) && ! $this->holds( $node['@if'], $context ) ) {
 			return [];
 		}
 		$op = (string) ( $node['@op'] ?? 'add' );
@@ -100,7 +172,7 @@ final class Renderer {
 			$type = $rendered['@type'] ?? ( 'node' . ( $index + 1 ) );
 			$key  = is_array( $type ) ? (string) ( $type[0] ?? 'node' ) : (string) $type;
 			// A repeated node needs a key of its own per item; the @id is the stable, unique choice.
-			if ( isset( $rendered['@id'] ) && is_string( $rendered['@id'] ) && $context->parent !== null ) {
+			if ( isset( $rendered['@id'] ) && is_string( $rendered['@id'] ) && ( null !== $context->parent || $context->index > 0 ) ) {
 				$key .= '_' . substr( md5( $rendered['@id'] ), 0, 8 );
 			}
 		}
@@ -165,6 +237,9 @@ final class Renderer {
 	 * @return array<string,mixed>|null
 	 */
 	private function renderProperties( array $object, Context $context ): ?array {
+		if ( isset( $object['@if'] ) && ! $this->holds( $object['@if'], $context ) ) {
+			return null;
+		}
 		$out = [];
 		foreach ( $object as $property => $value ) {
 			if ( in_array( $property, self::DIRECTIVES, true ) || ( 'properties' === $property && 'remove' === ( $object['@op'] ?? '' ) ) ) {
@@ -173,6 +248,11 @@ final class Renderer {
 			$rendered = $this->renderValue( $value, $context );
 			if ( Expression::isEmpty( $rendered ) ) {
 				continue;
+			}
+			if ( '@type' === $property && is_array( $rendered ) ) {
+				// ["LocalBusiness", "Organization"] where the setting already says "Organization" is one type.
+				$rendered = array_values( array_unique( array_map( 'strval', array_filter( $rendered, 'is_scalar' ) ) ) );
+				$rendered = 1 === count( $rendered ) ? $rendered[0] : $rendered;
 			}
 			$out[ (string) $property ] = $rendered;
 		}
@@ -190,16 +270,28 @@ final class Renderer {
 		if ( ! is_array( $value ) ) {
 			return $value;
 		}
-		if ( isset( $value['@each'] ) && is_string( $value['@each'] ) ) {
-			return $this->renderEach( $value, $context );
+		if ( isset( $value['@each'] ) && ( is_string( $value['@each'] ) || is_array( $value['@each'] ) ) ) {
+			$list = $this->renderEach( $value, $context );
+			// "@single": true prints a list of one as that one object (memberOf, openingHoursSpecification).
+			return ! empty( $value['@single'] ) && 1 === count( $list ) ? $list[0] : $list;
 		}
 		if ( array_is_list( $value ) ) {
 			$list = [];
 			foreach ( $value as $entry ) {
 				$rendered = $this->renderValue( $entry, $context );
-				if ( ! Expression::isEmpty( $rendered ) ) {
-					$list[] = $rendered;
+				if ( Expression::isEmpty( $rendered ) ) {
+					continue;
 				}
+				$spliced = is_string( $entry ) || ( is_array( $entry ) && isset( $entry['@each'] ) );
+				if ( $spliced && is_array( $rendered ) && array_is_list( $rendered ) ) {
+					foreach ( $rendered as $part ) {
+						if ( ! Expression::isEmpty( $part ) ) {
+							$list[] = $part;
+						}
+					}
+					continue;
+				}
+				$list[] = $rendered;
 			}
 			return $list;
 		}
@@ -213,15 +305,11 @@ final class Renderer {
 	 * @return array<int,array<string,mixed>>
 	 */
 	private function renderEach( array $definition, Context $context ): array {
-		$items = $this->evaluate( $definition['@each'], $context );
-		if ( ! is_array( $items ) ) {
-			return [];
-		}
 		$template = $definition;
-		unset( $template['@each'] );
+		unset( $template['@each'], $template['@single'] );
 		$out = [];
-		foreach ( $items as $item ) {
-			$rendered = $this->renderProperties( $template, $context->withItem( $item ) );
+		foreach ( $this->eachContexts( $definition['@each'], $context ) as $item_context ) {
+			$rendered = $this->renderProperties( $template, $item_context );
 			if ( null !== $rendered ) {
 				$out[] = $rendered;
 			}

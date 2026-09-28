@@ -68,7 +68,7 @@ final class Preview {
 			wp_send_json_error( [ 'message' => $e->getMessage() ] );
 		}
 		$request  = self::requestFor( $post );
-		$context  = new Context( $post );
+		$context  = ( new Context( $post ) )->withRequest( $request );
 		$renderer = new Renderer( new WordPressResolver() );
 		$graph    = [];
 		$matched  = [];
@@ -79,7 +79,7 @@ final class Preview {
 		}
 		usort( $list, static fn( Template $a, Template $b ): int => [ $a->priority, $a->name ] <=> [ $b->priority, $b->name ] );
 		foreach ( $list as $template ) {
-			if ( ! Targets::applies( $template, $request ) ) {
+			if ( ! $template->runsIn( Engine::MODE_STANDALONE ) || ! Targets::applies( $template, $request ) ) {
 				continue;
 			}
 			$operations = $renderer->render( $template, $context );

@@ -1,6 +1,36 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 — 2026-09-29
+
+The plugin can now carry a site's whole graph, so Rank Math's Schema module can be switched off while the rest of
+Rank Math stays.
+
+- Output: "Automatic" now edits Rank Math's graph only while Rank Math's Schema (Structured Data) module is on.
+  With the module off Rank Math prints no JSON-LD at all, and the plugin prints the whole graph itself.
+- Templates can say when they run: `"output": "standalone"` (only when the plugin prints its own graph, for
+  templates that build what Rank Math would otherwise provide), `"rankmath"`, or `"any"` (default). A standalone
+  template set can be imported while Rank Math's module is still on without changing the live output.
+- Preview on the live site: an administrator can add `?schema_editor_preview=standalone` to any front-end address
+  to get the graph the plugin would print on its own, as JSON, before switching over.
+- `page.*`: the page's canonical URL, SEO title and SEO description (read from Rank Math's own head data when Rank
+  Math is active, from WordPress otherwise) and its breadcrumb trail (`page.breadcrumbs`). The trail is the
+  theme's visible trail when Settings names the theme's trail function, else it is built from WordPress titles.
+- `request.*`: what kind of request is rendered (is_front_page, is_home, is_singular, is_page, is_archive,
+  is_collection, is_search, is_author, is_404, is_paged, post_type, page_template, slug, post_id).
+- Template `"vars"`: named expressions evaluated once per render, read as `var.NAME`.
+- `@if` accepts a list (all must hold) and comparisons (`a == b`, `a != b`), and works on nested objects too.
+- `@each` on a node renders the node once per entry; `@each` may also take a query object (the `@repeat` shape),
+  with each result as `post`; `loop.index` is the 1-based position.
+- A list entry that renders to a list is spliced into the surrounding list; duplicate `@type` entries collapse.
+- Filters: `not`, `trim`, `before`, `after`, `split`, `lines`, `last`, `key`, `pluck`, `unique`, `time`,
+  `opening_hours` (Rank Math's opening-hours rows grouped into specifications), `map_url` (stored coordinates to a
+  map link), `image_width`, `image_height`, `image_alt`, `image_caption`, `attachment_id`, `post:KEY`, `meta:KEY`,
+  `acf:FIELD`, `template_page` (a page-template file to the page that uses it) and `find_post:TYPE` (a name to the
+  one post of that type with that title or first word).
+- `site.home_url` (the home address without the trailing slash).
+- The editor's Preview and `wp schema-editor render` show the standalone graph.
+
+## Unreleased (0.1.x)
 
 - Site-neutral repository: generic example templates in `templates/examples/` (organization hygiene, service
   pages, case studies, team members, articles with a video) replace the client-specific set, and the tests and

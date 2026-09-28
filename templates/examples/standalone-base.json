@@ -1,0 +1,392 @@
+[
+  {
+    "name": "Base 1 Business, place and website",
+    "enabled": true,
+    "priority": 1,
+    "output": "standalone",
+    "targets": [
+      {
+        "type": "all"
+      }
+    ],
+    "exclude": [],
+    "vars": {
+      "site_name": "rankmath.titles.website_name || rankmath.titles.knowledgegraph_name || site.name"
+    },
+    "nodes": [
+      {
+        "@op": "add",
+        "@key": "place",
+        "@if": "rankmath.titles.geo || rankmath.titles.local_address",
+        "@type": "Place",
+        "@id": "{{site.url}}#place",
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": "{{ rankmath.titles.geo | before:',' }}",
+          "longitude": "{{ rankmath.titles.geo | after:',' }}"
+        },
+        "hasMap": "{{ rankmath.titles.geo | map_url }}",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "{{ rankmath.titles.local_address.streetAddress }}",
+          "addressLocality": "{{ rankmath.titles.local_address.addressLocality }}",
+          "addressRegion": "{{ rankmath.titles.local_address.addressRegion }}",
+          "postalCode": "{{ rankmath.titles.local_address.postalCode }}",
+          "addressCountry": "{{ rankmath.titles.local_address.addressCountry }}"
+        }
+      },
+      {
+        "@op": "add",
+        "@key": "publisher",
+        "@required": [
+          "name"
+        ],
+        "@type": [
+          "{{ rankmath.titles.local_business_type || 'Organization' }}",
+          "Organization"
+        ],
+        "@id": "{{site.url}}#organization",
+        "name": "{{ rankmath.titles.knowledgegraph_name || site.name }}",
+        "url": "{{ rankmath.titles.url || site.url }}",
+        "sameAs": [
+          "{{ rankmath.titles.social_url_facebook }}",
+          "{{ rankmath.titles.social_additional_profiles | lines }}"
+        ],
+        "email": "{{ rankmath.titles.email }}",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "{{ rankmath.titles.local_address.streetAddress }}",
+          "addressLocality": "{{ rankmath.titles.local_address.addressLocality }}",
+          "addressRegion": "{{ rankmath.titles.local_address.addressRegion }}",
+          "postalCode": "{{ rankmath.titles.local_address.postalCode }}",
+          "addressCountry": "{{ rankmath.titles.local_address.addressCountry }}"
+        },
+        "logo": {
+          "@if": "rankmath.titles.knowledgegraph_logo",
+          "@type": "ImageObject",
+          "@id": "{{site.url}}#logo",
+          "url": "{{ rankmath.titles.knowledgegraph_logo }}",
+          "contentUrl": "{{ rankmath.titles.knowledgegraph_logo }}",
+          "caption": "{{ var.site_name }}",
+          "inLanguage": "{{ site.language }}",
+          "width": "{{ rankmath.titles.knowledgegraph_logo_id | image_width }}",
+          "height": "{{ rankmath.titles.knowledgegraph_logo_id | image_height }}"
+        },
+        "description": "{{ rankmath.titles.organization_description }}",
+        "location": {
+          "@if": "rankmath.titles.geo || rankmath.titles.local_address",
+          "@id": "{{site.url}}#place"
+        },
+        "image": {
+          "@if": "rankmath.titles.knowledgegraph_logo",
+          "@id": "{{site.url}}#logo"
+        },
+        "telephone": "{{ rankmath.titles.phone_numbers.0.number || rankmath.titles.phone }}",
+        "openingHoursSpecification": {
+          "@each": "rankmath.titles.opening_hours | opening_hours",
+          "@single": true,
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": "{{ item.days }}",
+          "opens": "{{ item.opens }}",
+          "closes": "{{ item.closes }}"
+        }
+      },
+      {
+        "@op": "add",
+        "@key": "WebSite",
+        "@type": "WebSite",
+        "@id": "{{site.url}}#website",
+        "url": "{{ site.home_url }}",
+        "name": "{{ var.site_name }}",
+        "alternateName": "{{ rankmath.titles.website_alternate_name }}",
+        "publisher": {
+          "@id": "{{site.url}}#organization"
+        },
+        "inLanguage": "{{ site.language }}"
+      }
+    ]
+  },
+  {
+    "name": "Base 2 Web page and primary image",
+    "enabled": true,
+    "priority": 2,
+    "output": "standalone",
+    "targets": [
+      {
+        "type": "all"
+      }
+    ],
+    "exclude": [
+      {
+        "type": "404"
+      }
+    ],
+    "vars": {
+      "image": "post.featured_image_id || meta.rank_math_facebook_image_id || meta.rank_math_twitter_image_id || rankmath.titles.open_graph_image_id",
+      "about_page": "rankmath.titles.local_seo_about_page",
+      "contact_page": "rankmath.titles.local_seo_contact_page"
+    },
+    "nodes": [
+      {
+        "@op": "add",
+        "@key": "primaryImage",
+        "@if": [
+          "request.is_singular",
+          "var.image | image"
+        ],
+        "@type": "ImageObject",
+        "@id": "{{ var.image | image }}",
+        "url": "{{ var.image | image }}",
+        "width": "{{ var.image | image_width }}",
+        "height": "{{ var.image | image_height }}",
+        "caption": "{{ var.image | image_alt }}",
+        "inLanguage": "{{ site.language }}"
+      },
+      {
+        "@op": "add",
+        "@key": "WebPage",
+        "@if": "request.is_search",
+        "@required": [
+          "url"
+        ],
+        "@type": "SearchResultsPage",
+        "@id": "{{ page.url }}#webpage",
+        "url": "{{ page.url }}",
+        "name": "{{ page.title }}",
+        "isPartOf": {
+          "@id": "{{site.url}}#website"
+        },
+        "inLanguage": "{{ site.language }}"
+      },
+      {
+        "@op": "add",
+        "@key": "WebPage",
+        "@if": "request.is_author",
+        "@required": [
+          "url"
+        ],
+        "@type": "ProfilePage",
+        "@id": "{{ page.url }}#webpage",
+        "url": "{{ page.url }}",
+        "name": "{{ page.title }}",
+        "isPartOf": {
+          "@id": "{{site.url}}#website"
+        },
+        "inLanguage": "{{ site.language }}"
+      },
+      {
+        "@op": "add",
+        "@key": "WebPage",
+        "@if": [
+          "request.is_collection",
+          "request.is_author | not"
+        ],
+        "@required": [
+          "url"
+        ],
+        "@type": "CollectionPage",
+        "@id": "{{ page.url }}#webpage",
+        "url": "{{ page.url }}",
+        "name": "{{ page.title }}",
+        "isPartOf": {
+          "@id": "{{site.url}}#website"
+        },
+        "inLanguage": "{{ site.language }}"
+      },
+      {
+        "@op": "add",
+        "@key": "WebPage",
+        "@if": [
+          "request.is_page",
+          "post.id == var.about_page"
+        ],
+        "@required": [
+          "url"
+        ],
+        "@type": "AboutPage",
+        "@id": "{{ page.url }}#webpage",
+        "url": "{{ page.url }}",
+        "name": "{{ page.title }}",
+        "datePublished": "{{ post.date }}",
+        "dateModified": "{{ post.modified }}",
+        "isPartOf": {
+          "@id": "{{site.url}}#website"
+        },
+        "primaryImageOfPage": {
+          "@if": "var.image | image",
+          "@id": "{{ var.image | image }}"
+        },
+        "inLanguage": "{{ site.language }}"
+      },
+      {
+        "@op": "add",
+        "@key": "WebPage",
+        "@if": [
+          "request.is_page",
+          "post.id == var.contact_page"
+        ],
+        "@required": [
+          "url"
+        ],
+        "@type": "ContactPage",
+        "@id": "{{ page.url }}#webpage",
+        "url": "{{ page.url }}",
+        "name": "{{ page.title }}",
+        "datePublished": "{{ post.date }}",
+        "dateModified": "{{ post.modified }}",
+        "isPartOf": {
+          "@id": "{{site.url}}#website"
+        },
+        "primaryImageOfPage": {
+          "@if": "var.image | image",
+          "@id": "{{ var.image | image }}"
+        },
+        "inLanguage": "{{ site.language }}"
+      },
+      {
+        "@op": "add",
+        "@key": "WebPage",
+        "@if": [
+          "request.is_singular",
+          "post.id != var.about_page",
+          "post.id != var.contact_page"
+        ],
+        "@required": [
+          "url"
+        ],
+        "@type": "WebPage",
+        "@id": "{{ page.url }}#webpage",
+        "url": "{{ page.url }}",
+        "name": "{{ page.title }}",
+        "datePublished": "{{ post.date }}",
+        "dateModified": "{{ post.modified }}",
+        "about": {
+          "@if": "request.is_front_page",
+          "@id": "{{site.url}}#organization"
+        },
+        "isPartOf": {
+          "@id": "{{site.url}}#website"
+        },
+        "primaryImageOfPage": {
+          "@if": "var.image | image",
+          "@id": "{{ var.image | image }}"
+        },
+        "inLanguage": "{{ site.language }}"
+      }
+    ]
+  },
+  {
+    "name": "Base 3 Breadcrumbs",
+    "enabled": true,
+    "priority": 3,
+    "output": "standalone",
+    "targets": [
+      {
+        "type": "all"
+      }
+    ],
+    "exclude": [
+      {
+        "type": "front_page"
+      },
+      {
+        "type": "search"
+      },
+      {
+        "type": "404"
+      }
+    ],
+    "nodes": [
+      {
+        "@op": "add",
+        "@key": "BreadcrumbList",
+        "@if": "page.breadcrumbs.1",
+        "@type": "BreadcrumbList",
+        "@id": "{{ page.url }}#breadcrumb",
+        "itemListElement": {
+          "@each": "page.breadcrumbs",
+          "@type": "ListItem",
+          "position": "{{ item.position }}",
+          "item": {
+            "@id": "{{ item.url }}",
+            "name": "{{ item.name }}"
+          }
+        }
+      },
+      {
+        "@op": "merge",
+        "@if": "page.breadcrumbs.1",
+        "@match": "#webpage",
+        "breadcrumb": {
+          "@id": "{{ page.url }}#breadcrumb"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Base 4 Posts",
+    "enabled": true,
+    "priority": 4,
+    "output": "standalone",
+    "targets": [
+      {
+        "type": "post_type",
+        "value": "post"
+      }
+    ],
+    "exclude": [],
+    "vars": {
+      "image": "post.featured_image_id || meta.rank_math_facebook_image_id || meta.rank_math_twitter_image_id || rankmath.titles.open_graph_image_id"
+    },
+    "nodes": [
+      {
+        "@op": "add",
+        "@key": "richSnippet",
+        "@required": [
+          "headline"
+        ],
+        "@type": "BlogPosting",
+        "@id": "{{ page.url }}#richSnippet",
+        "headline": "{{ post.title }}",
+        "name": "{{ post.title }}",
+        "datePublished": "{{ post.date }}",
+        "dateModified": "{{ post.modified }}",
+        "articleSection": "{{ terms.category | join }}",
+        "author": [
+          {
+            "@if": "post.author.name | lower == site.name | lower",
+            "@type": "Organization",
+            "@id": "{{site.url}}#organization",
+            "name": "{{ rankmath.titles.knowledgegraph_name || site.name }}"
+          },
+          {
+            "@if": "post.author.name | lower != site.name | lower",
+            "@type": "Person",
+            "@id": "{{ post.author.url }}",
+            "name": "{{ post.author.name }}",
+            "url": "{{ post.author.url }}",
+            "description": "{{ post.author.description }}",
+            "worksFor": {
+              "@id": "{{site.url}}#organization"
+            }
+          }
+        ],
+        "publisher": {
+          "@id": "{{site.url}}#organization"
+        },
+        "description": "{{ page.description }}",
+        "isPartOf": {
+          "@id": "{{ page.url }}#webpage"
+        },
+        "image": {
+          "@if": "var.image | image",
+          "@id": "{{ var.image | image }}"
+        },
+        "inLanguage": "{{ site.language }}",
+        "mainEntityOfPage": {
+          "@id": "{{ page.url }}#webpage"
+        }
+      }
+    ]
+  }
+]

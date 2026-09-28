@@ -18,8 +18,15 @@ use JoeriVanhamel\SchemaEditor\Template\Template;
 
 /**
  * The one place templates meet a request: pick the ones that apply, render them in priority order, merge.
+ *
+ * The output mode ("rankmath" when the templates edit Rank Math's graph, "standalone" when the plugin prints its
+ * own) decides which templates run: a template marked "output": "standalone" only builds what Rank Math would
+ * otherwise provide, so it stays out of Rank Math's graph. Null means "every template" (the Preview, the CLI).
  */
 final class Engine {
+
+	public const MODE_RANKMATH   = 'rankmath';
+	public const MODE_STANDALONE = 'standalone';
 
 	public function __construct(
 		private readonly Repository $repository,
@@ -32,8 +39,13 @@ final class Engine {
 	 *
 	 * @return array<int,Template>
 	 */
-	public function matching( RequestContext $request ): array {
-		return array_values( array_filter( $this->repository->all(), static fn( Template $t ): bool => Targets::applies( $t, $request ) ) );
+	public function matching( RequestContext $request, ?string $mode = null ): array {
+		return array_values(
+			array_filter(
+				$this->repository->all(),
+				static fn( Template $t ): bool => ( null === $mode || $t->runsIn( $mode ) ) && Targets::applies( $t, $request )
+			)
+		);
 	}
 
 	/**
@@ -41,9 +53,10 @@ final class Engine {
 	 *
 	 * @return array<int,array{template:Template,operations:array<int,array<string,mixed>>}>
 	 */
-	public function operations( RequestContext $request, Context $context ): array {
-		$out = [];
-		foreach ( $this->matching( $request ) as $template ) {
+	public function operations( RequestContext $request, Context $context, ?string $mode = null ): array {
+		$out     = [];
+		$context = $context->withRequest( $request );
+		foreach ( $this->matching( $request, $mode ) as $template ) {
 			$out[] = [
 				'template'   => $template,
 				'operations' => $this->renderer->render( $template, $context ),
@@ -58,8 +71,8 @@ final class Engine {
 	 * @param array<string,array<string,mixed>> $graph Keyed nodes to start from (Rank Math's, or empty).
 	 * @return array<string,array<string,mixed>>
 	 */
-	public function apply( array $graph, RequestContext $request, Context $context ): array {
-		foreach ( $this->operations( $request, $context ) as $entry ) {
+	public function apply( array $graph, RequestContext $request, Context $context, ?string $mode = null ): array {
+		foreach ( $this->operations( $request, $context, $mode ) as $entry ) {
 			$graph = GraphMerger::apply( $graph, $entry['operations'] );
 		}
 		return $graph;

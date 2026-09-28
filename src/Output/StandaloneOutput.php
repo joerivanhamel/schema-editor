@@ -28,7 +28,7 @@ final class StandaloneOutput {
 	public function print(): void {
 		$request = RequestContext::fromWordPress();
 		$context = new Context( $request->postId ? get_post( $request->postId ) : null );
-		$graph   = $this->engine->apply( [], $request, $context );
+		$graph   = $this->engine->apply( [], $request, $context, Engine::MODE_STANDALONE );
 		if ( [] === $graph ) {
 			return;
 		}

@@ -6,10 +6,12 @@ description: Write, review and fix JSON-LD schema templates for Joeri Vanhamel's
 # Schema Editor templates
 
 Schema Editor stores JSON-LD templates as WordPress posts. At request time it picks the templates whose targets
-match the page, fills their placeholders from the database, and merges the resulting nodes into Rank Math's
-`@graph` (or prints its own graph without Rank Math). A template is a JSON document; writing one well is the
-whole job. `reference.md` beside this file is the complete language reference; `examples/` holds finished
-templates from real sites.
+match the page, fills their placeholders from the database, and either merges the resulting nodes into Rank
+Math's `@graph` (while Rank Math's Schema module is on) or prints the whole graph itself (Rank Math absent, or
+its Schema module switched off, with the rest of Rank Math still running). A template is a JSON document;
+writing one well is the whole job. `reference.md` beside this file is the complete language reference;
+`examples/` holds finished templates, including `standalone-base.json`, the base set for a site whose graph
+the plugin carries alone.
 
 ## The three rules that never bend
 
@@ -54,11 +56,35 @@ templates from real sites.
 7. **Hand over.** Explain each template in one table row: applies to, what it adds, which fields it reads and
    which of those still need confirming. Export the set as JSON so it can be re-imported by name.
 
+## When the plugin carries the whole graph
+
+With Rank Math's Schema module off (or no Rank Math), nothing provides the Organization, Place, WebSite,
+WebPage, primary ImageObject, BreadcrumbList or BlogPosting unless templates do. Page-type templates that
+`merge` into `#webpage` or `@type:BlogPosting` then need a base layer that runs first.
+
+1. **Inventory before building.** Save every URL's current JSON-LD (the sitemaps plus archives, search and 404)
+   as the baseline, and list where each node comes from: Rank Math, theme filters on `rank_math/json_ld` (these
+   go silent with the module), theme scripts outside Rank Math (these keep printing and will duplicate), and
+   existing templates. Read the theme's schema code; it holds the field names and rules to reproduce.
+2. **Build the base set** from `examples/standalone-base.json`, all marked `"output": "standalone"` and
+   priorities 1 to 4: business, place and website; web page (type by request: SearchResultsPage, ProfilePage,
+   CollectionPage, AboutPage and ContactPage from Rank Math's Local SEO settings, else WebPage) with the primary
+   image; breadcrumbs from `page.breadcrumbs` (set the theme's trail function in Settings so the markup matches
+   the visible trail); articles. Read every value from Rank Math's settings (they stay editable with the module
+   off), Site Settings fields and WordPress. Add the site's own theme-side rules on top (extra Organization
+   properties, byline authors), never as typed values.
+3. **Prove it locally** on a fixture that mirrors the site's data model (post types, field groups, the theme's
+   trail function), with the module off, comparing property sets page type by page type against the baseline.
+4. **Cut over without a gap.** Upload the plugin and import the set while the module is still on (standalone
+   templates stay inert, the live output does not change). Compare every URL's live graph with
+   `?schema_editor_preview=standalone` as an administrator. Only then switch Rank Math's Schema module off
+   (Automatic output switches itself), purge caches, re-check, and have the theme's own schema scripts removed.
+
 ## Conventions Joeri expects
 
-- Priority 5 for site-wide hygiene templates (removing properties, fixing the WebSite node), 10 for page-type
-  templates, 15 to 20 for later overrides and opt-in deviations. Later priorities can edit or replace what
-  earlier ones added.
+- Priority 1 to 4 for a standalone base set, 5 for site-wide hygiene templates (removing properties, fixing the
+  WebSite node), 10 for page-type templates, 15 to 20 for later overrides and opt-in deviations. Later
+  priorities can edit or replace what earlier ones added.
 - Name templates `<site abbreviation> <number> <what>` so the list reads in order and the export is stable.
 - People: names as the site shows them (first names if the site uses first names), `jobTitle` from the record,
   `worksFor` the Organization, no `sameAs` unless the profile is linked on the page. Give every person one stable

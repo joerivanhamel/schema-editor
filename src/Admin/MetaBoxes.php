@@ -79,15 +79,21 @@ final class MetaBoxes {
 		echo '<p><strong>' . esc_html__( 'Operations', 'schema-editor' ) . '</strong><br>';
 		echo '<code>@op</code> add (default) | merge | remove<br>';
 		echo '<code>@match</code> <code>#organization</code>, <code>@type:WebPage</code>, <code>@key:Service</code><br>';
-		echo '<code>@key</code>, <code>@required</code>, <code>@if</code>, <code>@repeat</code> (WP_Query args), <code>@each</code> (array path)</p>';
+		echo '<code>@key</code>, <code>@required</code>, <code>@if</code> (one expression or a list; <code>a == b</code>, <code>a != b</code>; also on nested objects), <code>@repeat</code> (WP_Query args), <code>@each</code> (array path or query; on a node or a value; <code>loop.index</code>)</p>';
+		echo '<p><strong>' . esc_html__( 'Template keys', 'schema-editor' ) . '</strong><br>';
+		echo '<code>"output"</code> any | standalone | rankmath<br><code>"vars"</code> { "name": "expression" }, read as <code>var.name</code></p>';
 		echo '<p><strong>' . esc_html__( 'Values', 'schema-editor' ) . '</strong><br>';
 		echo '<code>post.title|permalink|slug|excerpt|content|date|modified|featured_image|author.name</code><br>';
 		echo '<code>acf.field</code>, <code>acf.*_hero_image</code>, <code>acf.field.sub</code><br>';
 		echo '<code>option.field</code> (ACF options), <code>meta.key</code>, <code>settings.name</code><br>';
 		echo '<code>rankmath.title|description</code>, <code>rankmath.titles.KEY</code><br>';
-		echo '<code>site.url|name|language</code>, <code>terms.taxonomy</code>, <code>item.*</code>, <code>parent.*</code></p>';
+		echo '<code>site.url|home_url|name|language</code>, <code>terms.taxonomy</code>, <code>item.*</code>, <code>parent.*</code><br>';
+		echo '<code>page.url|title|description|breadcrumbs</code><br>';
+		echo '<code>request.is_front_page|is_home|is_singular|is_page|is_collection|is_search|is_author|is_404</code></p>';
 		echo '<p><strong>' . esc_html__( 'Filters', 'schema-editor' ) . '</strong><br>';
-		echo '<code>image:size</code> <code>permalink</code> <code>year</code> <code>int</code> <code>date:c</code> <code>first_word</code> <code>slug</code> <code>lower</code> <code>words:55</code> <code>join</code> <code>first</code> <code>youtube_embed</code> <code>youtube_watch</code> <code>iso_duration</code> <code>raw</code></p>';
+		echo '<code>image:size</code> <code>permalink</code> <code>year</code> <code>int</code> <code>date:c</code> <code>first_word</code> <code>slug</code> <code>lower</code> <code>words:55</code> <code>join</code> <code>first</code> <code>youtube_embed</code> <code>youtube_watch</code> <code>iso_duration</code> <code>raw</code><br>';
+		echo '<code>not</code> <code>before:,</code> <code>after:,</code> <code>split:x</code> <code>lines</code> <code>pluck:key</code> <code>key:a.b</code> <code>last</code> <code>unique</code> <code>time</code> <code>opening_hours</code> <code>map_url</code><br>';
+		echo '<code>image_width</code> <code>image_height</code> <code>image_alt</code> <code>post:title</code> <code>meta:key</code> <code>acf:field</code> <code>template_page</code> <code>find_post:type</code></p>';
 	}
 
 	public function assets( string $hook ): void {

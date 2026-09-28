@@ -78,14 +78,25 @@ final class SettingsPage {
 		echo '<tr><th scope="row"><label for="se_output_mode">' . esc_html__( 'Output', 'schema-editor' ) . '</label></th><td>';
 		echo '<select id="se_output_mode" name="' . esc_attr( Settings::OPTION ) . '[output_mode]">';
 		foreach ( [
-			'auto'       => __( 'Automatic (Rank Math when active, else standalone)', 'schema-editor' ),
+			'auto'       => __( 'Automatic (inside Rank Math\'s graph while its Schema module is on, else the plugin\'s own graph)', 'schema-editor' ),
 			'rankmath'   => __( 'Rank Math only', 'schema-editor' ),
-			'standalone' => __( 'Standalone script (even beside Rank Math)', 'schema-editor' ),
+			'standalone' => __( 'Standalone script (the plugin prints the whole graph)', 'schema-editor' ),
 			'off'        => __( 'Off', 'schema-editor' ),
 		] as $value => $label ) {
 			echo '<option value="' . esc_attr( $value ) . '"' . selected( $values['output_mode'], $value, false ) . '>' . esc_html( $label ) . '</option>';
 		}
-		echo '</select></td></tr>';
+		echo '</select>';
+		$mode = \JoeriVanhamel\SchemaEditor\Plugin::resolveMode( $this->settings );
+		echo '<p class="description">' . esc_html(
+			match ( $mode ) {
+				'rankmath'   => __( 'In force now: templates edit Rank Math\'s graph. Templates marked "output": "standalone" are not running.', 'schema-editor' ),
+				'standalone' => __( 'In force now: the plugin prints the whole graph. Templates marked "output": "rankmath" are not running.', 'schema-editor' ),
+				default      => __( 'In force now: no structured data is printed by this plugin.', 'schema-editor' ),
+			}
+		) . ' ' . esc_html__( 'An administrator can add ?schema_editor_preview=standalone to any page address to see the graph the plugin would print on its own.', 'schema-editor' ) . '</p></td></tr>';
+		echo '<tr><th scope="row"><label for="se_breadcrumb_callback">' . esc_html__( 'Breadcrumb trail function', 'schema-editor' ) . '</label></th><td>';
+		echo '<input type="text" class="regular-text code" id="se_breadcrumb_callback" name="' . esc_attr( Settings::OPTION ) . '[breadcrumb_callback]" value="' . esc_attr( (string) $values['breadcrumb_callback'] ) . '">';
+		echo '<p class="description">' . esc_html__( 'Optional. The name of the theme function that returns the visible breadcrumb trail, so page.breadcrumbs (and a BreadcrumbList built from it) matches what visitors see. Leave empty to build the trail from page titles, the posts page, post type archives and terms.', 'schema-editor' ) . '</p></td></tr>';
 		$this->checkbox( 'force_global_entities', __( 'Always print Rank Math\'s Organization, WebSite and WebPage nodes on single posts and pages (Rank Math skips them when a post\'s schema type is "off", which leaves nothing for a template to merge into)', 'schema-editor' ), (bool) $values['force_global_entities'] );
 		$this->checkbox( 'disable_rankmath_search', __( 'Remove the sitelinks search box (WebSite.potentialAction) from Rank Math\'s graph', 'schema-editor' ), (bool) $values['disable_rankmath_search'] );
 		$this->checkbox( 'debug_comment', __( 'Print an HTML comment in the footer naming the templates that ran (for checking on staging)', 'schema-editor' ), (bool) $values['debug_comment'] );

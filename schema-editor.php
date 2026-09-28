@@ -2,8 +2,8 @@
 /**
  * Plugin Name:       Schema Editor
  * Plugin URI:        https://www.joerivanhamel.com/
- * Description:       Write JSON-LD schema templates with database-driven placeholders and display targets. Merges into Rank Math's graph when Rank Math is active, prints its own graph otherwise. Nothing is hardcoded: every value comes from the post, its fields, the site's options or Rank Math's settings.
- * Version:           0.1.4
+ * Description:       Write JSON-LD schema templates with database-driven placeholders and display targets. Edits Rank Math's graph while Rank Math's Schema module is on, and prints the whole graph itself when it is off or Rank Math is absent. Nothing is hardcoded: every value comes from the post, its fields, the site's options or Rank Math's settings.
+ * Version:           0.2.0
  * Requires at least: 6.4
  * Requires PHP:      8.1
  * Author:            Joeri Vanhamel
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SCHEMA_EDITOR_VERSION', '0.1.4' );
+define( 'SCHEMA_EDITOR_VERSION', '0.2.0' );
 define( 'SCHEMA_EDITOR_FILE', __FILE__ );
 define( 'SCHEMA_EDITOR_DIR', __DIR__ );
 

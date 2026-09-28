@@ -14,3 +14,7 @@ your theme: a field that doesn't exist produces no node, never a wrong one).
   and a `merge` that aligns the founder's node with the Organization's founder.
 - `article-video.json`: `VideoObject` inside the graph only when the film URL field is set, linked from
   `BlogPosting.video`.
+- `standalone-base.json`: four templates marked `"output": "standalone"` that build what Rank Math's Schema module
+  would otherwise provide, from Rank Math's settings and WordPress alone: business, place and website; the web
+  page (typed by request) with its primary image; breadcrumbs from `page.breadcrumbs`; posts with their author.
+  Use them as the first layer when the plugin carries the whole graph, then add the site's own rules on top.

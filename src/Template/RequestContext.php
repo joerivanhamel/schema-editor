@@ -31,6 +31,8 @@ final class RequestContext {
 	 * @param bool          $isAuthor        An author archive (author.php).
 	 * @param int           $authorId        The queried author's user ID on author archives.
 	 * @param string        $authorLogin     The queried author's user_nicename on author archives.
+	 * @param bool          $isArchive       Any archive (term, post type, author, date).
+	 * @param bool          $isPaged         Page 2 or later of a listing.
 	 */
 	public function __construct(
 		public readonly int $postId = 0,
@@ -48,8 +50,41 @@ final class RequestContext {
 		public readonly array $terms = [],
 		public readonly bool $isAuthor = false,
 		public readonly int $authorId = 0,
-		public readonly string $authorLogin = ''
+		public readonly string $authorLogin = '',
+		public readonly bool $isArchive = false,
+		public readonly bool $isPaged = false
 	) {
+	}
+
+	/**
+	 * The request as the flat values templates read through request.* (is_front_page, is_home, is_singular,
+	 * is_page, is_archive, is_collection, is_search, is_author, is_404, is_paged, post_type, taxonomy, term,
+	 * page_template, slug, post_id). A false condition is left out, so "@if": "request.is_search" reads naturally.
+	 *
+	 * @return array<string,mixed>
+	 */
+	public function toArray(): array {
+		return array_filter(
+			[
+				'post_id'       => $this->postId ?: null,
+				'post_type'     => $this->postType,
+				'page_template' => $this->pageTemplate,
+				'slug'          => $this->slug,
+				'taxonomy'      => $this->taxonomy,
+				'term'          => $this->termSlug,
+				'is_singular'   => $this->isSingular,
+				'is_page'       => $this->isSingular && 'page' === $this->postType,
+				'is_front_page' => $this->isFrontPage,
+				'is_home'       => $this->isPostsPage,
+				'is_archive'    => $this->isArchive,
+				'is_collection' => $this->isPostsPage || $this->isArchive,
+				'is_search'     => $this->isSearch,
+				'is_author'     => $this->isAuthor,
+				'is_404'        => $this->is404,
+				'is_paged'      => $this->isPaged,
+			],
+			static fn( mixed $value ): bool => null !== $value && '' !== $value && false !== $value
+		);
 	}
 
 	/**
@@ -113,7 +148,9 @@ final class RequestContext {
 			$terms,
 			is_author(),
 			$author_id,
-			$author_login
+			$author_login,
+			is_archive(),
+			is_paged()
 		);
 	}
 }

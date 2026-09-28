@@ -129,7 +129,7 @@ final class Command {
 	}
 
 	/**
-	 * Render the nodes the plugin would add for a post.
+	 * Render the graph the plugin would print on its own (standalone mode) for a post.
 	 *
 	 * ## OPTIONS
 	 *
@@ -151,10 +151,10 @@ final class Command {
 			WP_CLI::error( 'No post found for ' . $target );
 		}
 		$request = Preview::requestFor( $post );
-		$matched = $this->engine->matching( $request );
+		$matched = $this->engine->matching( $request, Engine::MODE_STANDALONE );
 		WP_CLI::log( 'Request: ' . $request->postType . ' #' . $request->postId . ' template ' . $request->pageTemplate );
 		WP_CLI::log( 'Templates: ' . ( $matched ? implode( ', ', array_map( static fn( $t ) => $t->name, $matched ) ) : 'none' ) );
-		$graph = $this->engine->apply( [], $request, new Context( $post ) );
+		$graph = $this->engine->apply( [], $request, new Context( $post ), Engine::MODE_STANDALONE );
 		WP_CLI::line( Repository::encode( [ '@context' => 'https://schema.org', '@graph' => array_values( $graph ) ] ) );
 	}
 }
