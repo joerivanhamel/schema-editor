@@ -22,13 +22,13 @@ final class TargetsTest extends TestCase {
 	}
 
 	public function testPageTemplateAndPostType(): void {
-		$request = new RequestContext( postId: 6, postType: 'page', pageTemplate: 'page-garden-design.php', slug: 'garden-design', isSingular: true, terms: [ 'category:design-build' ] );
-		self::assertTrue( Targets::applies( $this->template( [ [ 'type' => 'page_template', 'value' => 'page-garden-design.php' ] ] ), $request ) );
-		self::assertTrue( Targets::applies( $this->template( [ [ 'type' => 'page_template', 'value' => 'templates/page-garden-design.php' ] ] ), $request ) );
+		$request = new RequestContext( postId: 6, postType: 'page', pageTemplate: 'page-consulting.php', slug: 'consulting', isSingular: true, terms: [ 'category:advisory' ] );
+		self::assertTrue( Targets::applies( $this->template( [ [ 'type' => 'page_template', 'value' => 'page-consulting.php' ] ] ), $request ) );
+		self::assertTrue( Targets::applies( $this->template( [ [ 'type' => 'page_template', 'value' => 'templates/page-consulting.php' ] ] ), $request ) );
 		self::assertTrue( Targets::applies( $this->template( [ [ 'type' => 'post_type', 'value' => 'page' ] ] ), $request ) );
 		self::assertTrue( Targets::applies( $this->template( [ [ 'type' => 'post', 'value' => '6' ] ] ), $request ) );
-		self::assertTrue( Targets::applies( $this->template( [ [ 'type' => 'slug', 'value' => 'garden-design' ] ] ), $request ) );
-		self::assertTrue( Targets::applies( $this->template( [ [ 'type' => 'term', 'value' => 'category:design-build' ] ] ), $request ) );
+		self::assertTrue( Targets::applies( $this->template( [ [ 'type' => 'slug', 'value' => 'consulting' ] ] ), $request ) );
+		self::assertTrue( Targets::applies( $this->template( [ [ 'type' => 'term', 'value' => 'category:advisory' ] ] ), $request ) );
 		self::assertFalse( Targets::applies( $this->template( [ [ 'type' => 'post_type', 'value' => 'post' ] ] ), $request ) );
 		self::assertFalse( Targets::applies( $this->template( [ [ 'type' => 'front_page' ] ] ), $request ) );
 	}
@@ -40,9 +40,9 @@ final class TargetsTest extends TestCase {
 	}
 
 	public function testArchives(): void {
-		$archive = new RequestContext( postType: 'portfolio_project', isPostTypeArchive: true );
-		self::assertTrue( Targets::applies( $this->template( [ [ 'type' => 'post_type_archive', 'value' => 'portfolio_project' ] ] ), $archive ) );
-		self::assertFalse( Targets::applies( $this->template( [ [ 'type' => 'post_type', 'value' => 'portfolio_project' ] ] ), $archive ) );
+		$archive = new RequestContext( postType: 'project', isPostTypeArchive: true );
+		self::assertTrue( Targets::applies( $this->template( [ [ 'type' => 'post_type_archive', 'value' => 'project' ] ] ), $archive ) );
+		self::assertFalse( Targets::applies( $this->template( [ [ 'type' => 'post_type', 'value' => 'project' ] ] ), $archive ) );
 		$category = new RequestContext( taxonomy: 'category', termSlug: 'design-build' );
 		self::assertTrue( Targets::applies( $this->template( [ [ 'type' => 'taxonomy', 'value' => 'category' ] ] ), $category ) );
 		self::assertTrue( Targets::applies( $this->template( [ [ 'type' => 'all' ] ] ), new RequestContext( is404: true ) ) );

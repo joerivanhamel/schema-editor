@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace JoeriVanhamel\SchemaEditor\Render;
 
 /**
- * Resolves placeholder paths ("post.title", "acf.hero_image", "option.sd_legal_name") to values, runs the
+ * Resolves placeholder paths ("post.title", "acf.hero_image", "option.legal_name") to values, runs the
  * data-dependent filters ("image"), and answers "@repeat" and "@each" queries. WordPressResolver is the real one;
  * ArrayResolver serves the tests.
  */

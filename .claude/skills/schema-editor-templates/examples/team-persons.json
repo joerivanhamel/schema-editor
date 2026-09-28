@@ -1,5 +1,5 @@
 {
-  "name": "RL 06 Meet the Team",
+  "name": "Meet the Team",
   "enabled": true,
   "priority": 10,
   "targets": [
@@ -25,9 +25,9 @@
     },
     {
       "@op": "merge",
-      "@match": "#{{option.sd_founder_name|first_word|slug}}",
-      "name": "{{option.sd_founder_name}}",
-      "jobTitle": "{{option.sd_founder_title}}"
+      "@match": "#{{option.founder_name|first_word|slug}}",
+      "name": "{{option.founder_name}}",
+      "jobTitle": "{{option.founder_title}}"
     }
   ]
 }

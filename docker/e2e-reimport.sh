@@ -36,7 +36,7 @@ id=$(wp post list --post_type=schema_template --title="E2E 02 Service page" --fi
 wp post get "$id" --field=post_content | grep -o 'REIMPORT-MARKER' | head -1 | sed 's/^/   stored: /' || echo "   stored: marker NOT found"
 
 echo "== front end"
-curl -s "$URL/garden-design/?x=$RANDOM" | grep -o 'REIMPORT-MARKER' | head -1 | sed 's/^/   rendered: /' || echo "   rendered: marker NOT found"
+curl -s "$URL/consulting/?x=$RANDOM" | grep -o 'REIMPORT-MARKER' | head -1 | sed 's/^/   rendered: /' || echo "   rendered: marker NOT found"
 
 echo "== restore the original template"
 wp schema-editor import /plugin/docker/e2e/templates.json >/dev/null && echo "   restored"

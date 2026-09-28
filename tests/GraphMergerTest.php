@@ -16,9 +16,9 @@ final class GraphMergerTest extends TestCase {
 
 	private function graph(): array {
 		return [
-			'publisher' => [ '@type' => [ 'HomeAndConstructionBusiness', 'Organization' ], '@id' => 'https://example.com/#organization', 'name' => 'Refined', 'aggregateRating' => [ 'ratingValue' => '4.9' ], 'review' => [] ],
-			'WebPage'   => [ '@type' => 'WebPage', '@id' => 'https://example.com/garden-design/#webpage', 'name' => 'Page' ],
-			'Service'   => [ '@type' => 'Service', '@id' => 'https://example.com/garden-design/#service', 'name' => 'Old' ],
+			'publisher' => [ '@type' => [ 'ProfessionalService', 'Organization' ], '@id' => 'https://example.com/#organization', 'name' => 'Example Co', 'aggregateRating' => [ 'ratingValue' => '4.9' ], 'review' => [] ],
+			'WebPage'   => [ '@type' => 'WebPage', '@id' => 'https://example.com/consulting/#webpage', 'name' => 'Page' ],
+			'Service'   => [ '@type' => 'Service', '@id' => 'https://example.com/consulting/#service', 'name' => 'Old' ],
 		];
 	}
 
@@ -28,7 +28,7 @@ final class GraphMergerTest extends TestCase {
 		self::assertSame( [ 'publisher' ], GraphMerger::matching( $graph, '@type:Organization' ) );
 		self::assertSame( [ 'WebPage' ], GraphMerger::matching( $graph, '@type:WebPage' ) );
 		self::assertSame( [ 'Service' ], GraphMerger::matching( $graph, '@key:Service' ) );
-		self::assertSame( [ 'WebPage' ], GraphMerger::matching( $graph, 'https://example.com/garden-design/#webpage' ) );
+		self::assertSame( [ 'WebPage' ], GraphMerger::matching( $graph, 'https://example.com/consulting/#webpage' ) );
 		self::assertSame( [], GraphMerger::matching( $graph, '#nothing' ) );
 	}
 
@@ -49,7 +49,7 @@ final class GraphMergerTest extends TestCase {
 		$graph = GraphMerger::apply( $this->graph(), [ [ 'op' => 'remove', 'match' => '#organization', 'properties' => [ 'aggregateRating', 'review', 'priceRange' ] ] ] );
 		self::assertArrayNotHasKey( 'aggregateRating', $graph['publisher'] );
 		self::assertArrayNotHasKey( 'review', $graph['publisher'] );
-		self::assertSame( 'Refined', $graph['publisher']['name'] );
+		self::assertSame( 'Example Co', $graph['publisher']['name'] );
 	}
 
 	public function testRemoveNode(): void {

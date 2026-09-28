@@ -1,14 +1,14 @@
 {
-  "name": "RL 03 Service pages",
+  "name": "Service pages",
   "enabled": true,
   "priority": 10,
   "targets": [
-    { "type": "page_template", "value": "page-garden-design.php" },
-    { "type": "page_template", "value": "page-garden-construction.php" },
-    { "type": "page_template", "value": "page-planting-design.php" },
-    { "type": "page_template", "value": "page-outdoor-living.php" },
-    { "type": "page_template", "value": "page-wellness-gardens.php" },
-    { "type": "page_template", "value": "page-garden-maintenance.php" }
+    { "type": "page_template", "value": "page-consulting.php" },
+    { "type": "page_template", "value": "page-implementation.php" },
+    { "type": "page_template", "value": "page-training.php" },
+    { "type": "page_template", "value": "page-support.php" },
+    { "type": "page_template", "value": "page-audits.php" },
+    { "type": "page_template", "value": "page-maintenance.php" }
   ],
   "exclude": [],
   "nodes": [
@@ -24,7 +24,7 @@
       "description": "{{ acf.*_hero_subtitle || rankmath.description }}",
       "provider": { "@id": "{{site.url}}#organization" },
       "areaServed": {
-        "@each": "option.sd_areas_served",
+        "@each": "option.areas_served",
         "@type": "{{item.area_type}}",
         "name": "{{item.area_name}}"
       },

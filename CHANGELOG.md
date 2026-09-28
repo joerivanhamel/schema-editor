@@ -11,11 +11,8 @@
 
 - `@if` and `@each` accept the expression with or without the `{{ … }}` braces (a braced single-alternative `@if`
   silently never matched before).
-- `terms.all` includes taxonomies that are shown in the admin even when registered as non-public (the portfolio
-  taxonomies on Refined Landscapes), and excludes post formats.
-- Refined templates: film articles read `journal_video_url`, `journal_video_label` and `journal_video_duration`
-  (confirmed through the field inventory); case-study keywords list the six portfolio taxonomies explicitly, so
-  they work on 0.1.2 as well.
+- `terms.all` includes taxonomies that are shown in the admin even when registered as non-public (a theme's
+  portfolio taxonomies, for example), and excludes post formats.
 
 ## 0.1.2 — 2026-09-28
 
@@ -25,13 +22,11 @@ Author schema groundwork, ahead of the author bio pages.
 - `author.*` placeholders (the queried author on an archive, else the post's author) and `post.author.*`
   extended with `description`, `avatar`, `login`, `first_name`, `last_name`, `user_url` and `acf.FIELD` for ACF
   user fields.
-- Refined template 09 (disabled): Person on the author page as `ProfilePage.mainEntity`, and `BlogPosting.author`
-  pointing at it, once bios exist.
 - Claude skill `schema-editor-templates` in `.claude/skills/` for writing and reviewing templates.
 
 ## 0.1.1 — 2026-09-28
 
-Found on the first staging review of the Refined Landscapes templates.
+Found on the first staging review of a real template set.
 
 - `acf.*glob` placeholders now match the field names the ACF field groups define, not only the values saved in
   meta, so a field still holding its default value resolves (the service standfirsts fell through to the meta
@@ -40,9 +35,6 @@ Found on the first staging review of the Refined Landscapes templates.
 - `youtube_id` filter; `youtube_embed` and `youtube_watch` accept a bare ID or any YouTube URL and yield nothing
   for anything else.
 - The Preview box lists every ACF field on the chosen post with a glimpse of its value.
-- Refined templates: case-study keywords from `terms.all`; the founder's Person node on Meet the Team takes the
-  full name and title from Site Settings so it agrees with the Organization's founder node; film articles read
-  `journal_video_url`.
 
 ## 0.1.0 — 2026-09-28
 
@@ -55,4 +47,4 @@ First build.
 - Rank Math bridge (`rank_math/json_ld`, priority 50) and a standalone printer when Rank Math is absent.
 - Settings (output mode, sitelinks search box off, debug comment, delete on uninstall), JSON import and export,
   WP-CLI `list`, `import`, `export`, `render`.
-- Refined Landscapes template set in `templates/refined-landscapes/`.
+- Example templates in `templates/examples/`.

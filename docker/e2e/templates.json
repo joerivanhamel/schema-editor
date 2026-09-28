@@ -12,7 +12,7 @@
     "name": "E2E 02 Service page",
     "enabled": true,
     "priority": 10,
-    "targets": [ { "type": "slug", "value": "garden-design" } ],
+    "targets": [ { "type": "slug", "value": "consulting" } ],
     "nodes": [
       {
         "@op": "add",

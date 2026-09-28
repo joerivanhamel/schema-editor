@@ -20,7 +20,7 @@ use InvalidArgumentException;
  *     "name":     "Service page",
  *     "enabled":  true,
  *     "priority": 10,
- *     "targets":  [ { "type": "page_template", "value": "page-garden-design.php" } ],
+ *     "targets":  [ { "type": "page_template", "value": "page-consulting.php" } ],
  *     "exclude":  [ { "type": "post", "value": 52 } ],
  *     "nodes":    [ { "@op": "add", "@key": "Service", "@type": "Service", "name": "{{post.title}}" } ]
  *   }

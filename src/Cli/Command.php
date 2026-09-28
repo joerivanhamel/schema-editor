@@ -74,7 +74,7 @@ final class Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp schema-editor import templates/refined-landscapes/
+	 *     wp schema-editor import templates/examples/
 	 *
 	 * @param array<int,string> $args Positional arguments.
 	 */
@@ -139,7 +139,7 @@ final class Command {
 	 * ## EXAMPLES
 	 *
 	 *     wp schema-editor render 6
-	 *     wp schema-editor render https://example.com/garden-design/
+	 *     wp schema-editor render https://example.com/consulting/
 	 *
 	 * @param array<int,string> $args Positional arguments.
 	 */

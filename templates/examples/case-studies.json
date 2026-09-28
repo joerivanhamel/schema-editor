@@ -1,9 +1,9 @@
 {
-  "name": "RL 04 Case studies",
+  "name": "Case studies",
   "enabled": true,
   "priority": 10,
   "targets": [
-    { "type": "post_type", "value": "portfolio_project" }
+    { "type": "post_type", "value": "project" }
   ],
   "exclude": [],
   "nodes": [
@@ -23,14 +23,7 @@
       "dateCreated": "{{acf.project_year|year}}",
       "datePublished": "{{post.date}}",
       "dateModified": "{{post.modified}}",
-      "keywords": [
-        "{{ terms.rl_aesthetic|join }}",
-        "{{ terms.rl_feature|join }}",
-        "{{ terms.rl_service|join }}",
-        "{{ terms.rl_location|join }}",
-        "{{ terms.rl_sector|join }}",
-        "{{ terms.portfolio_category|join }}"
-      ],
+      "keywords": "{{ terms.all|join }}",
       "award": "{{acf.award_title}}",
       "creator": { "@id": "{{site.url}}#organization" },
       "publisher": { "@id": "{{site.url}}#organization" },

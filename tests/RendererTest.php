@@ -28,8 +28,8 @@ final class RendererTest extends TestCase {
 
 	private function post(): array {
 		return [
-			'title'     => 'Garden Design &amp; Build',
-			'permalink' => 'https://example.com/garden-design/',
+			'title'     => 'Consulting &amp; Advice',
+			'permalink' => 'https://example.com/consulting/',
 			'excerpt'   => '',
 			'date'      => '2026-06-10T14:11:27+01:00',
 		];
@@ -43,8 +43,8 @@ final class RendererTest extends TestCase {
 		self::assertCount( 1, $ops );
 		self::assertSame( 'add', $ops[0]['op'] );
 		self::assertSame( 'Service', $ops[0]['key'] );
-		self::assertSame( 'https://example.com/garden-design/#service', $ops[0]['node']['@id'] );
-		self::assertSame( 'Garden Design & Build', $ops[0]['node']['name'] );
+		self::assertSame( 'https://example.com/consulting/#service', $ops[0]['node']['@id'] );
+		self::assertSame( 'Consulting & Advice', $ops[0]['node']['name'] );
 	}
 
 	public function testEmptyPropertiesAreOmitted(): void {
@@ -157,12 +157,12 @@ final class RendererTest extends TestCase {
 				[
 					'@type'      => 'Service',
 					'name'       => 'x',
-					'areaServed' => [ '@each' => 'option.sd_areas_served', '@type' => '{{item.area_type}}', 'name' => '{{item.area_name}}' ],
+					'areaServed' => [ '@each' => 'option.areas_served', '@type' => '{{item.area_type}}', 'name' => '{{item.area_name}}' ],
 				],
 			],
-			[ 'option' => [ 'sd_areas_served' => [ [ 'area_name' => 'Hertfordshire', 'area_type' => 'AdministrativeArea' ], [ 'area_name' => '', 'area_type' => 'Place' ] ] ] ]
+			[ 'option' => [ 'areas_served' => [ [ 'area_name' => 'Example County', 'area_type' => 'AdministrativeArea' ], [ 'area_name' => '', 'area_type' => 'Place' ] ] ] ]
 		);
-		self::assertSame( [ [ '@type' => 'AdministrativeArea', 'name' => 'Hertfordshire' ] ], $ops[0]['node']['areaServed'] );
+		self::assertSame( [ [ '@type' => 'AdministrativeArea', 'name' => 'Example County' ] ], $ops[0]['node']['areaServed'] );
 	}
 
 	public function testEmptyEachIsOmitted(): void {
@@ -205,7 +205,7 @@ final class RendererTest extends TestCase {
 			[ 'post' => $this->post() ]
 		);
 		self::assertCount( 2, $ops, 'a merge with nothing to merge is dropped' );
-		self::assertSame( [ 'op' => 'merge', 'match' => '#webpage', 'properties' => [ 'mainEntity' => [ '@id' => 'https://example.com/garden-design/#service' ] ] ], $ops[0] );
+		self::assertSame( [ 'op' => 'merge', 'match' => '#webpage', 'properties' => [ 'mainEntity' => [ '@id' => 'https://example.com/consulting/#service' ] ] ], $ops[0] );
 		self::assertSame( [ 'op' => 'remove', 'match' => '#organization', 'properties' => [ 'aggregateRating', 'review' ] ], $ops[1] );
 	}
 

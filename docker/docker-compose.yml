@@ -5,7 +5,7 @@
 #       --title="Schema Editor test" --admin_user=admin --admin_password=admin --admin_email=admin@example.test --skip-email
 #   docker compose -f docker/docker-compose.yml run --rm cli wp plugin install seo-by-rank-math --activate
 #   docker compose -f docker/docker-compose.yml run --rm cli wp plugin activate schema-editor
-#   docker compose -f docker/docker-compose.yml run --rm cli wp schema-editor import /plugin/templates/refined-landscapes/
+#   docker compose -f docker/docker-compose.yml run --rm cli wp schema-editor import /plugin/templates/examples/
 #
 # The site answers at http://localhost:8089 (admin / admin).
 

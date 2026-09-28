@@ -4,10 +4,10 @@
 
 ```json
 {
-  "name": "RL 03 Service pages",
+  "name": "Service pages",
   "enabled": true,
   "priority": 10,
-  "targets": [ { "type": "page_template", "value": "page-garden-design.php" } ],
+  "targets": [ { "type": "page_template", "value": "page-consulting.php" } ],
   "exclude": [ { "type": "slug", "value": "services" } ],
   "nodes": [ ... ]
 }

@@ -1,9 +1,9 @@
 {
-  "name": "RL 04 Case studies",
+  "name": "Case studies",
   "enabled": true,
   "priority": 10,
   "targets": [
-    { "type": "post_type", "value": "portfolio_project" }
+    { "type": "post_type", "value": "project" }
   ],
   "exclude": [],
   "nodes": [

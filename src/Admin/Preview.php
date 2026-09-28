@@ -43,7 +43,7 @@ final class Preview {
 
 	public static function box(): void {
 		echo '<p>' . esc_html__( 'Post ID or URL to preview against:', 'schema-editor' ) . ' ';
-		echo '<input type="text" id="schema_editor_preview_target" class="regular-text" placeholder="123 or https://…/garden-design/"> ';
+		echo '<input type="text" id="schema_editor_preview_target" class="regular-text" placeholder="123 or https://…/consulting/"> ';
 		echo '<button type="button" class="button" id="schema_editor_preview_run">' . esc_html__( 'Preview', 'schema-editor' ) . '</button></p>';
 		echo '<p class="description">' . esc_html__( 'Shows the nodes this plugin adds for that post, from the document as it is in the editor plus every other saved template that applies. Rank Math\'s own nodes appear only on the live page.', 'schema-editor' ) . '</p>';
 		echo '<pre id="schema_editor_preview_output" style="max-height:480px;overflow:auto;background:#f6f7f7;padding:12px;border:1px solid #dcdcde"></pre>';

@@ -41,11 +41,11 @@ wp option update rank-math-options-general '{"strip_category_base":"off","attach
 wp option update schema_editor_settings '{"output_mode":"auto","force_global_entities":true,"disable_rankmath_search":true,"debug_comment":true,"delete_on_uninstall":false}' --format=json >/dev/null
 
 echo "== content"
-page_id=$(wp post list --post_type=page --name=garden-design --field=ID | head -1)
+page_id=$(wp post list --post_type=page --name=consulting --field=ID | head -1)
 if [ -z "$page_id" ]; then
-	page_id=$(wp post create --post_type=page --post_status=publish --post_title="Garden Design & Build" --post_name=garden-design --porcelain)
+	page_id=$(wp post create --post_type=page --post_status=publish --post_title="Consulting & Advice" --post_name=consulting --porcelain)
 fi
-wp post meta update "$page_id" hero_subtitle "Design-led gardens shaped around your home." >/dev/null
+wp post meta update "$page_id" hero_subtitle "Practical advice shaped around your business." >/dev/null
 wp post meta update "$page_id" rank_math_description "Meta description that should lose to the subtitle." >/dev/null
 team_id=$(wp post list --post_type=page --name=team --field=ID | head -1)
 if [ -z "$team_id" ]; then
@@ -60,12 +60,12 @@ for person in "Alex Haerle|Lead Designer" "Jon Dundon|Aftercare Lead" "Nobody|";
 	fi
 	if [ -n "$role" ]; then wp post meta update "$pid" team_role "$role" >/dev/null; fi
 done
-film_id=$(wp post list --post_type=post --name=calm-garden-reveal --field=ID | head -1)
+film_id=$(wp post list --post_type=post --name=product-walkthrough --field=ID | head -1)
 if [ -z "$film_id" ]; then
-	film_id=$(wp post create --post_type=post --post_status=publish --post_title="A Completed Garden, Seen in Motion" --post_name=calm-garden-reveal --post_content="A film." --porcelain)
+	film_id=$(wp post create --post_type=post --post_status=publish --post_title="A Product Walkthrough" --post_name=product-walkthrough --post_content="A film." --porcelain)
 fi
 wp post meta update "$film_id" video_id RPX44L1DfQU >/dev/null
-wp post meta update "$film_id" video_title "A Calm Garden Reveal" >/dev/null
+wp post meta update "$film_id" video_title "Product Walkthrough Video" >/dev/null
 wp post meta update "$film_id" video_duration "0:18" >/dev/null
 # A featured image for the film (a generated PNG) so thumbnailUrl resolves.
 if [ -z "$(wp post meta get "$film_id" _thumbnail_id 2>/dev/null)" ]; then
@@ -82,8 +82,8 @@ wp schema-editor render "$page_id" | head -40
 
 echo "== fetch pages"
 mkdir -p docker/e2e/out
-curl -s "$URL/garden-design/" -o docker/e2e/out/garden-design.html
+curl -s "$URL/consulting/" -o docker/e2e/out/consulting.html
 curl -s "$URL/team/" -o docker/e2e/out/team.html
-curl -s "$URL/calm-garden-reveal/" -o docker/e2e/out/film.html
+curl -s "$URL/product-walkthrough/" -o docker/e2e/out/film.html
 curl -s "$URL/" -o docker/e2e/out/home.html
-echo "fetched $(wc -c < docker/e2e/out/garden-design.html) bytes for /garden-design/"
+echo "fetched $(wc -c < docker/e2e/out/consulting.html) bytes for /consulting/"

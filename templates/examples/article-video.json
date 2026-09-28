@@ -1,5 +1,5 @@
 {
-  "name": "RL 05 Articles with a film",
+  "name": "Articles with a film",
   "enabled": true,
   "priority": 10,
   "targets": [
@@ -9,24 +9,24 @@
   "nodes": [
     {
       "@op": "add",
-      "@if": "acf.journal_video_url|youtube_id",
+      "@if": "{{ acf.article_video_url|youtube_id }}",
       "@key": "VideoObject",
       "@required": [ "name", "thumbnailUrl", "uploadDate", "embedUrl" ],
       "@type": "VideoObject",
       "@id": "{{post.permalink}}#video",
-      "name": "{{ acf.journal_video_label || post.title }}",
-      "description": "{{ acf.journal_deck || rankmath.description || post.excerpt }}",
-      "thumbnailUrl": "{{ acf.journal_hero_image|image:1024x576 || post.featured_image }}",
+      "name": "{{ acf.article_video_title || post.title }}",
+      "description": "{{ acf.article_standfirst || rankmath.description || post.excerpt }}",
+      "thumbnailUrl": "{{ acf.article_hero_image|image:1024x576 || post.featured_image }}",
       "uploadDate": "{{post.date}}",
-      "duration": "{{ acf.journal_video_duration|iso_duration }}",
-      "embedUrl": "{{ acf.journal_video_url|youtube_embed }}",
-      "url": "{{ acf.journal_video_url|youtube_watch }}",
+      "duration": "{{ acf.*video_duration|iso_duration }}",
+      "embedUrl": "{{ acf.article_video_url|youtube_embed }}",
+      "url": "{{ acf.article_video_url|youtube_watch }}",
       "publisher": { "@id": "{{site.url}}#organization" },
       "mainEntityOfPage": { "@id": "{{post.permalink}}#webpage" }
     },
     {
       "@op": "merge",
-      "@if": "acf.journal_video_url|youtube_id",
+      "@if": "{{ acf.article_video_url|youtube_id }}",
       "@match": "@type:BlogPosting",
       "video": { "@id": "{{post.permalink}}#video" }
     }

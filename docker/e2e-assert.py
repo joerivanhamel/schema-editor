@@ -29,13 +29,13 @@ def by_id_suffix(nodes, suffix):
     return [n for n in nodes if str(n.get("@id", "")).endswith(suffix)]
 
 
-g, c = graph("garden-design.html")
-check(len(g) == 1, "garden-design: exactly one JSON-LD script (Rank Math prints the merged graph)")
+g, c = graph("consulting.html")
+check(len(g) == 1, "consulting: exactly one JSON-LD script (Rank Math prints the merged graph)")
 nodes = g[0]["@graph"]
 print("  types:", [n.get("@type") for n in nodes], "| comment:", c)
 svc = by_type(nodes, "Service")
 check(len(svc) == 1, "Service node present once")
-check(svc and svc[0].get("description") == "Design-led gardens shaped around your home.", "description: meta.hero_subtitle beats rankmath.description")
+check(svc and svc[0].get("description") == "Practical advice shaped around your business.", "description: meta.hero_subtitle beats rankmath.description")
 check(svc and all(k not in svc[0] for k in ("areaServed", "award", "image")), "empty areaServed, award and image omitted")
 wp = by_type(nodes, "WebPage")
 check(wp and wp[0].get("mainEntity", {}).get("@id", "").endswith("#service"), "WebPage.mainEntity merged into Rank Math's WebPage")

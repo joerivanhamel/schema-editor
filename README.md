@@ -6,7 +6,7 @@ page never carries two graphs and Rank Math's Organization, WebSite, WebPage, br
 exactly as Rank Math builds them. Without Rank Math the plugin prints its own graph.
 
 Nothing is hardcoded. A template says *where a value comes from* (`{{post.title}}`, `{{acf.hero_image|image}}`,
-`{{option.sd_legal_name}}`, `{{rankmath.description}}`) and the plugin reads it at request time. A property whose
+`{{option.legal_name}}`, `{{rankmath.description}}`) and the plugin reads it at request time. A property whose
 source is empty is left out, so a missing field never produces an empty or wrong value, and a node missing one of
 its `@required` properties is left out whole.
 
@@ -34,7 +34,7 @@ Schema Editor → Add Template. The document is JSON:
   "name": "Service page",
   "enabled": true,
   "priority": 10,
-  "targets": [ { "type": "page_template", "value": "page-garden-design.php" } ],
+  "targets": [ { "type": "page_template", "value": "page-consulting.php" } ],
   "exclude": [],
   "nodes": [
     {
@@ -182,16 +182,17 @@ src/Render/              Expression, Renderer, Context, resolvers (WordPress and
 src/Output/              Engine, GraphMerger, RankMathBridge, StandaloneOutput
 src/Admin/               post type, editor meta boxes, preview endpoint, settings/import/export
 src/Cli/Command.php      WP-CLI
-templates/               shipped template sets (refined-landscapes/)
+templates/examples/      example templates to import and adapt
 tests/                   PHPUnit
 ```
 
 ## Google's guidelines
 
-Templates can express anything Schema.org allows; whether Google accepts it is a separate question. The shipped
-Refined Landscapes set follows Google's structured-data guidelines by default and keeps the one deviation the client
-asked about (review markup on the business entity) as a disabled template, so turning it on is a deliberate choice
-with the reasoning next to it.
+Templates can express anything Schema.org allows; whether Google accepts it is a separate question. The examples
+follow Google's structured-data guidelines: `organization-hygiene.json`, for instance, removes self-serving review
+markup and an unpublished price range from the Organization node. When a site wants to deviate from the
+guidelines, keep the deviation in its own template, disabled by default, with the reasoning in its name, so turning
+it on is a deliberate choice.
 
 ## Licence
 
