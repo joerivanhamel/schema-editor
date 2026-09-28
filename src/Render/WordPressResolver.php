@@ -336,9 +336,18 @@ final class WordPressResolver implements ValueResolverInterface {
 		if ( ! $post_id || '' === $taxonomy ) {
 			return null;
 		}
-		// "terms.all": every public taxonomy of the post type, in one list.
+		// "terms.all": every taxonomy of the post type that an editor can see (public, or shown in the admin), so
+		// custom taxonomies registered as non-public but managed in the UI still count; internal ones do not.
 		$taxonomies = 'all' === $taxonomy
-			? array_values( array_filter( get_object_taxonomies( (string) get_post_type( $post_id ) ), static fn( string $t ): bool => (bool) ( get_taxonomy( $t )->public ?? false ) ) )
+			? array_values(
+				array_filter(
+					get_object_taxonomies( (string) get_post_type( $post_id ) ),
+					static function ( string $t ): bool {
+						$object = get_taxonomy( $t );
+						return $object && ( ! empty( $object->public ) || ! empty( $object->show_ui ) ) && 'post_format' !== $t;
+					}
+				)
+			)
 			: [ $taxonomy ];
 		$terms      = [];
 		foreach ( $taxonomies as $tax ) {

@@ -258,7 +258,15 @@ final class Renderer {
 		return $missing ? null : $result;
 	}
 
+	/**
+	 * Evaluate a directive expression ("@if", "@each"). Authors naturally write these with the same braces as a
+	 * value placeholder, so a surrounding "{{ … }}" is accepted and stripped.
+	 */
 	private function evaluate( string $expression, Context $context ): mixed {
+		$expression = trim( $expression );
+		if ( preg_match( '/^\{\{(.*)\}\}$/s', $expression, $m ) ) {
+			$expression = trim( $m[1] );
+		}
 		return $this->expression->evaluate( $expression, $context );
 	}
 }

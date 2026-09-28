@@ -12,7 +12,7 @@
   "nodes": [
     {
       "@op": "add",
-      "@if": "{{ acf.*video_url|youtube_id || acf.*video_id|youtube_id || acf.*youtube_id|youtube_id }}",
+      "@if": "acf.*video_url|youtube_id || acf.*video_id|youtube_id || acf.*youtube_id|youtube_id",
       "@key": "VideoObject",
       "@required": [ "name", "thumbnailUrl", "uploadDate", "embedUrl" ],
       "@type": "VideoObject",
@@ -29,7 +29,7 @@
     },
     {
       "@op": "merge",
-      "@if": "{{ acf.*video_url|youtube_id || acf.*video_id|youtube_id || acf.*youtube_id|youtube_id }}",
+      "@if": "acf.*video_url|youtube_id || acf.*video_id|youtube_id || acf.*youtube_id|youtube_id",
       "@match": "#webpage",
       "video": { "@id": "{{post.permalink}}#video" }
     }

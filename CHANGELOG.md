@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.3 — 2026-09-28
+
+- `@if` and `@each` accept the expression with or without the `{{ … }}` braces (a braced single-alternative `@if`
+  silently never matched before).
+- `terms.all` includes taxonomies that are shown in the admin even when registered as non-public (the portfolio
+  taxonomies on Refined Landscapes), and excludes post formats.
+- Refined templates: film articles read `journal_video_url`, `journal_video_label` and `journal_video_duration`
+  (confirmed through the field inventory); case-study keywords list the six portfolio taxonomies explicitly, so
+  they work on 0.1.2 as well.
+
 ## 0.1.2 — 2026-09-28
 
 Author schema groundwork, ahead of the author bio pages.

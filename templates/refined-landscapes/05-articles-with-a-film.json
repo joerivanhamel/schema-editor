@@ -9,7 +9,7 @@
   "nodes": [
     {
       "@op": "add",
-      "@if": "{{ acf.journal_video_url|youtube_id }}",
+      "@if": "acf.journal_video_url|youtube_id",
       "@key": "VideoObject",
       "@required": [ "name", "thumbnailUrl", "uploadDate", "embedUrl" ],
       "@type": "VideoObject",
@@ -18,7 +18,7 @@
       "description": "{{ acf.journal_deck || rankmath.description || post.excerpt }}",
       "thumbnailUrl": "{{ acf.journal_hero_image|image:1024x576 || post.featured_image }}",
       "uploadDate": "{{post.date}}",
-      "duration": "{{ acf.*video_duration|iso_duration }}",
+      "duration": "{{ acf.journal_video_duration|iso_duration }}",
       "embedUrl": "{{ acf.journal_video_url|youtube_embed }}",
       "url": "{{ acf.journal_video_url|youtube_watch }}",
       "publisher": { "@id": "{{site.url}}#organization" },
@@ -26,7 +26,7 @@
     },
     {
       "@op": "merge",
-      "@if": "{{ acf.journal_video_url|youtube_id }}",
+      "@if": "acf.journal_video_url|youtube_id",
       "@match": "@type:BlogPosting",
       "video": { "@id": "{{post.permalink}}#video" }
     }

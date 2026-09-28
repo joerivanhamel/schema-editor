@@ -37,7 +37,7 @@
     },
     {
       "@op": "add",
-      "@if": "{{ acf.*_process_video_id|youtube_id || acf.*_video_id|youtube_id }}",
+      "@if": "acf.*_process_video_id|youtube_id || acf.*_video_id|youtube_id",
       "@key": "VideoObject",
       "@required": [ "name", "thumbnailUrl", "uploadDate", "embedUrl" ],
       "@type": "VideoObject",
@@ -54,7 +54,7 @@
     },
     {
       "@op": "merge",
-      "@if": "{{ acf.*_process_video_id|youtube_id || acf.*_video_id|youtube_id }}",
+      "@if": "acf.*_process_video_id|youtube_id || acf.*_video_id|youtube_id",
       "@match": "#webpage",
       "video": { "@id": "{{post.permalink}}#video" }
     }

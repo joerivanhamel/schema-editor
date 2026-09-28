@@ -91,6 +91,13 @@ final class RendererTest extends TestCase {
 		self::assertCount( 1, $this->render( [ [ '@if' => 'acf.video_id', '@type' => 'VideoObject', 'name' => 'x' ] ], $data ) );
 	}
 
+	public function testIfAcceptsBracesAroundTheExpression(): void {
+		$data = [ 'acf' => [ 'video_url' => 'https://youtu.be/RPX44L1DfQU' ] ];
+		self::assertCount( 1, $this->render( [ [ '@if' => '{{ acf.video_url|youtube_id }}', '@type' => 'VideoObject', 'name' => 'x' ] ], $data ) );
+		self::assertCount( 1, $this->render( [ [ '@if' => 'acf.video_url|youtube_id', '@type' => 'VideoObject', 'name' => 'x' ] ], $data ) );
+		self::assertSame( [], $this->render( [ [ '@if' => '{{ acf.missing|youtube_id }}', '@type' => 'VideoObject', 'name' => 'x' ] ], $data ) );
+	}
+
 	public function testFilters(): void {
 		$data = [
 			'acf'  => [ 'project_year' => 'Completed 2024', 'gd_hero_image' => [ 'url' => 'https://example.com/hero.jpg', 'ID' => 5 ], 'video_id' => 'RPX44L1DfQU', 'len' => '1:24' ],
