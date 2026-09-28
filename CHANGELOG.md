@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.4 — 2026-09-28
+
+- Fix: importing a template whose name already exists now replaces its content. A safeguard meant only for
+  Quick Edit also ran during admin imports and restored the old content, so re-imports reported "updated" but
+  changed nothing. The safeguard now applies to Quick Edit requests with an empty body only.
+- End-to-end check covers re-import: a changed template imported over an existing one must change the output.
+
 ## 0.1.3 — 2026-09-28
 
 - `@if` and `@each` accept the expression with or without the `{{ … }}` braces (a braced single-alternative `@if`

@@ -160,7 +160,11 @@ final class MetaBoxes {
 	 * @return array<string,mixed>
 	 */
 	public function keepContentOnQuickEdit( array $data, array $postarr ): array {
-		if ( Repository::POST_TYPE === ( $data['post_type'] ?? '' ) && ! empty( $postarr['ID'] ) && ! isset( $_POST[ self::FIELD ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- presence check only.
+		// Only a Quick Edit that arrives with an empty body. Every other save (the editor, import, WP-CLI, code) must
+		// be able to replace the document; 0.1.0 to 0.1.3 applied this to all admin saves and silently undid
+		// re-imports of an existing template.
+		$quick_edit = wp_doing_ajax() && 'inline-save' === ( $_POST['action'] ?? '' ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- WordPress verified the inline-save nonce.
+		if ( $quick_edit && Repository::POST_TYPE === ( $data['post_type'] ?? '' ) && ! empty( $postarr['ID'] ) && '' === trim( (string) ( $data['post_content'] ?? '' ) ) ) {
 			$existing = get_post_field( 'post_content', (int) $postarr['ID'] );
 			if ( is_string( $existing ) && '' !== $existing ) {
 				$data['post_content'] = $existing;
